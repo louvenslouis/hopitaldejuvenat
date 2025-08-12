@@ -15,6 +15,7 @@ const syncConfigs: SyncConfig[] = [
   { tableName: 'sorties', collectionName: 'sorties' },
   { tableName: 'sorties_details', collectionName: 'sorties_details' },
   { tableName: 'retour', collectionName: 'retour' },
+  { tableName: 'stock_adjustments', collectionName: 'stock_adjustments' },
 ];
 
 export const syncData = async () => {

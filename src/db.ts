@@ -73,7 +73,8 @@ class DBManager {
       db = new DBManager.SQL.Database(savedDb);
     } else {
       console.log("No saved database found. Creating a new one from .sql file...");
-      const response = await fetch('/hopital_juvenat_sql.sql');
+      const sqlFilePath = `${import.meta.env.BASE_URL}hopital_juvenat_sql.sql`;
+      const response = await fetch(sqlFilePath);
       const sql = await response.text();
       db = new DBManager.SQL.Database();
       db.run(sql);

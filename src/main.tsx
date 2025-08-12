@@ -11,9 +11,10 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Register service worker
-if ('serviceWorker' in navigator) {
+// Register service worker only in production
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js`)
       .then(registration => {
         console.log('SW registered: ', registration);
       })
