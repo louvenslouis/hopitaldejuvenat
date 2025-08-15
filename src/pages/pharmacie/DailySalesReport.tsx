@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getDB } from '../../db';
 
 const DailySalesReport: React.FC = () => {
   const [dailySales, setDailySales] = useState<any[]>([]);

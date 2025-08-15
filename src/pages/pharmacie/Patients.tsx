@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import AddPatientModal from '../components/AddPatientModal';
-import EditPatientModal from '../components/EditPatientModal';
+import { Button, Form, InputGroup } from 'react-bootstrap';
+import { getDB } from '../../db';
+import AddPatientModal from '../../components/AddPatientModal';
+import EditPatientModal from '../../components/EditPatientModal';
+import PatientCard from '../../components/PatientCard';
 
 const Patients: React.FC = () => {
   const [patients, setPatients] = useState<any[]>([]);
@@ -17,8 +18,7 @@ const Patients: React.FC = () => {
     const params: (string | number)[] = [];
 
     if (searchTerm) {
-      query += " WHERE prenom LIKE ? OR nom LIKE ?";
-      params.push(`%${searchTerm}%`);
+      query += " WHERE prenom || ' ' || nom LIKE ?";
       params.push(`%${searchTerm}%`);
     }
 
@@ -73,42 +73,11 @@ const Patients: React.FC = () => {
           )}
         </InputGroup>
       </div>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom Complet</th>
-            <th>NIF/CIN</th>
-            <th>Année de naissance</th>
-            <th>Sexe</th>
-            <th>Téléphone</th>
-            <th>Statut Sync</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {patients.map((patient, index) => (
-            <tr key={index}>
-              <td>{patient[0]}</td>
-              <td>{patient[1]} {patient[2]}</td>
-              <td>{patient[3]}</td>
-              <td>{patient[4]}</td>
-              <td>{patient[5]}</td>
-              <td>{patient[6] ? patient[6].toString().replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4') : 'N/A'}</td>
-              <td>
-                {patient[7] === 'synced' && <span title="Synchronisé">✅</span>}
-                {patient[7] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-                {patient[7] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-                {patient[7] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-              </td>
-              <td>
-                <Button variant="warning" size="sm" onClick={() => handleEdit(patient[0] as number)}>Modifier</Button>
-                <Button variant="danger" size="sm" className="ms-2" onClick={() => handleDelete(patient[0] as number)}>Supprimer</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="card-grid">
+        {patients.map((patient, index) => (
+          <PatientCard key={index} patient={patient} onEdit={handleEdit} onDelete={handleDelete} />
+        ))}
+      </div>
       <AddPatientModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
       <EditPatientModal
         show={showEditModal}

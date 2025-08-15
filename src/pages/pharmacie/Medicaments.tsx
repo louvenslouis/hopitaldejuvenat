@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import AddMedicamentModal from '../components/AddMedicamentModal';
-import EditMedicamentModal from '../components/EditMedicamentModal';
+import { Button, Form, InputGroup } from 'react-bootstrap';
+import { getDB } from '../../db';
+import AddMedicamentModal from '../../components/AddMedicamentModal';
+import EditMedicamentModal from '../../components/EditMedicamentModal';
+import MedicamentCard from '../../components/MedicamentCard';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -19,7 +20,7 @@ const Medicaments: React.FC = () => {
     const params: (string | number)[] = [];
 
     if (searchTerm) {
-      query += " WHERE nom LIKE ?";
+      query += " WHERE LOWER(nom) LIKE LOWER(?)";
       params.push(`%${searchTerm}%`);
     }
 
@@ -86,42 +87,11 @@ const Medicaments: React.FC = () => {
           )}
         </InputGroup>
       </div>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Prix</th>
-            <th>Type</th>
-            <th>Présentation</th>
-            <th>Stock Actuel</th>
-            <th>Statut Sync</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {medicaments.map((medicament, index) => (
-            <tr key={index}>
-              <td>{medicament[0]}</td>
-              <td>{medicament[1]}</td>
-              <td>{medicament[2].toLocaleString('fr-HT', { style: 'currency', currency: 'HTG' })}</td>
-              <td>{medicament[3]}</td>
-              <td>{medicament[4]}</td>
-              <td>{medicament[5]}</td>
-              <td>
-                {medicament[9] === 'synced' && <span title="Synchronisé">✅</span>}
-                {medicament[9] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-                {medicament[9] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-                {medicament[9] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-              </td>
-              <td>
-                <Button variant="warning" size="sm" onClick={() => handleEdit(medicament[0] as number)}>Modifier</Button>
-                <Button variant="danger" size="sm" className="ms-2" onClick={() => handleDelete(medicament[0] as number)}>Supprimer</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="card-grid">
+        {medicaments.map((medicament, index) => (
+          <MedicamentCard key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} />
+        ))}
+      </div>
       <AddMedicamentModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
       <EditMedicamentModal
         show={showEditModal}

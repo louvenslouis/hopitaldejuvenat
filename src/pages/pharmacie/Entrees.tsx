@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, Row, Col, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
+import { Button, Form, Row, Col, InputGroup, ListGroup } from 'react-bootstrap';
+import { getDB } from '../../db';
+import EntreeCard from '../../components/EntreeCard';
 
 const Entrees: React.FC = () => {
   const [entrees, setEntrees] = useState<any[]>([]);
   const [medicaments, setMedicaments] = useState<any[]>([]);
   const [selectedMedicament, setSelectedMedicament] = useState<number | undefined>();
+  const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
+  const [showMedicamentResults, setShowMedicamentResults] = useState(false);
   const [quantite, setQuantite] = useState<number>(0);
   const [dateExpiration, setDateExpiration] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +19,7 @@ const Entrees: React.FC = () => {
     const params: (string | number)[] = [];
 
     if (searchTerm) {
-      query += " WHERE liste_medicaments.nom LIKE ?";
+      query += " WHERE LOWER(liste_medicaments.nom) LIKE LOWER(?)";
       params.push(`%${searchTerm}%`);
     }
 
@@ -39,6 +42,12 @@ const Entrees: React.FC = () => {
     fetchData();
   }, [searchTerm]);
 
+  const handleMedicamentSelect = (medicament: any) => {
+    setSelectedMedicament(medicament[0]);
+    setMedicamentSearchTerm(medicament[1]);
+    setShowMedicamentResults(false);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMedicament && quantite > 0 && dateExpiration) {
@@ -46,6 +55,7 @@ const Entrees: React.FC = () => {
       await db.run("INSERT INTO stock (article_id, quantite, date_expiration, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)", [selectedMedicament, quantite, dateExpiration]);
       fetchData();
       setSelectedMedicament(undefined);
+      setMedicamentSearchTerm('');
       setQuantite(0);
       setDateExpiration('');
     }
@@ -67,12 +77,23 @@ const Entrees: React.FC = () => {
           <Col md={5}>
             <Form.Group>
               <Form.Label>Médicament</Form.Label>
-              <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(Number(e.target.value))}>
-                <option>Sélectionner un médicament</option>
-                {medicaments.map((med, index) => (
-                  <option key={index} value={med[0]}>{med[1]}</option>
-                ))}
-              </Form.Select>
+              <Form.Control
+                type="text"
+                placeholder="Rechercher un médicament..."
+                value={medicamentSearchTerm}
+                onChange={e => { setMedicamentSearchTerm(e.target.value); setShowMedicamentResults(true); }}
+              />
+              {showMedicamentResults && medicamentSearchTerm && (
+                <ListGroup>
+                  {medicaments
+                    .filter(m => m[1].toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
+                    .map((m, i) => (
+                      <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(m)}>
+                        {m[1]}
+                      </ListGroup.Item>
+                    ))}
+                </ListGroup>
+              )}
             </Form.Group>
           </Col>
           <Col md={3}>
@@ -108,35 +129,11 @@ const Entrees: React.FC = () => {
         </InputGroup>
       </div>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Médicament</th>
-            <th>Quantité</th>
-            <th>Date d'expiration</th>
-            <th>Date d'enregistrement</th>
-            <th>Statut Sync</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entrees.map((entree, index) => (
-            <tr key={index}>
-              <td>{entree[0]}</td>
-              <td>{entree[3]}</td>
-              <td>{entree[1]}</td>
-              <td>{entree[5] ? new Date(entree[5]).toLocaleDateString('fr-HT') : 'N/A'}</td>
-              <td>{new Date(entree[2]).toLocaleString('fr-HT')}</td>
-              <td>
-                {entree[4] === 'synced' && <span title="Synchronisé">✅</span>}
-                {entree[4] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-                {entree[4] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-                {entree[4] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="card-grid">
+        {entrees.map((entree, index) => (
+          <EntreeCard key={index} entree={entree} />
+        ))}
+      </div>
     </div>
   );
 };

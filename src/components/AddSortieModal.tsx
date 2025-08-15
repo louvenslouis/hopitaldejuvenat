@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap';
+import { Modal, Button, Form, Row, Col, Alert, ListGroup } from 'react-bootstrap';
 import { getDB } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,12 +13,26 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [patients, setPatients] = useState<any[]>([]);
   const [medicaments, setMedicaments] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<number | undefined>();
+  const [patientSearchTerm, setPatientSearchTerm] = useState('');
+  const [showPatientResults, setShowPatientResults] = useState(false);
   const [service, setService] = useState('Clinique externe');
   const [employe, setEmploye] = useState('Azor');
   const [chambre, setChambre] = useState<number | undefined>();
   const [memo, setMemo] = useState('');
-  const [articles, setArticles] = useState<any[]>([{ article_id: undefined, quantite: 1 }]);
+  const [articles, setArticles] = useState<any[]>([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
   const [stockError, setStockError] = useState<string | null>(null);
+
+  const resetState = () => {
+    setSelectedPatient(undefined);
+    setPatientSearchTerm('');
+    setShowPatientResults(false);
+    setService('Clinique externe');
+    setEmploye('Azor');
+    setChambre(undefined);
+    setMemo('');
+    setArticles([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
+    setStockError(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,19 +48,35 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     };
     if (show) {
       fetchData();
-      setStockError(null); // Clear previous errors when modal opens
     }
   }, [show]);
 
   const handleArticleChange = (index: number, field: string, value: any) => {
     const newArticles = [...articles];
     newArticles[index][field] = value;
+    if (field === 'searchTerm') {
+      newArticles[index]['showResults'] = true;
+    }
     setArticles(newArticles);
     setStockError(null); // Clear error on change
   };
 
+  const handleMedicamentSelect = (index: number, medicament: any) => {
+    const newArticles = [...articles];
+    newArticles[index]['article_id'] = medicament[0];
+    newArticles[index]['searchTerm'] = medicament[1];
+    newArticles[index]['showResults'] = false;
+    setArticles(newArticles);
+  }
+
+  const handlePatientSelect = (patient: any) => {
+    setSelectedPatient(patient[0]);
+    setPatientSearchTerm(`${patient[1]} ${patient[2]}`);
+    setShowPatientResults(false);
+  }
+
   const addArticle = () => {
-    setArticles([...articles, { article_id: undefined, quantite: 1 }]);
+    setArticles([...articles, { article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
     setStockError(null); // Clear error on add
   };
 
@@ -95,7 +125,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={onHide} size="lg" onExited={resetState}>
       <Modal.Header closeButton>
         <Modal.Title>Créer une sortie</Modal.Title>
       </Modal.Header>
@@ -105,10 +135,23 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Patient</Form.Label>
-                <Form.Select value={selectedPatient} onChange={e => setSelectedPatient(Number(e.target.value))}>
-                  <option>Sélectionner un patient</option>
-                  {patients.map((p, i) => <option key={i} value={p[0]}>{p[1]} {p[2]}</option>)}
-                </Form.Select>
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher un patient..."
+                  value={patientSearchTerm}
+                  onChange={e => { setPatientSearchTerm(e.target.value); setShowPatientResults(true); }}
+                />
+                {showPatientResults && patientSearchTerm && (
+                  <ListGroup>
+                    {patients
+                      .filter(p => `${p[1]} ${p[2]}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
+                      .map((p, i) => (
+                        <ListGroup.Item key={i} onClick={() => handlePatientSelect(p)}>
+                          {p[1]} {p[2]}
+                        </ListGroup.Item>
+                      ))}
+                  </ListGroup>
+                )}
               </Form.Group>
             </Col>
             <Col md={6}>
@@ -155,10 +198,23 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
           {articles.map((article, index) => (
             <Row key={index} className="mb-2">
               <Col md={7}>
-                <Form.Select value={article.article_id} onChange={e => handleArticleChange(index, 'article_id', Number(e.target.value))}>
-                  <option>Sélectionner un médicament</option>
-                  {medicaments.map((m, i) => <option key={i} value={m[0]}>{m[1]}</option>)}
-                </Form.Select>
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher un médicament..."
+                  value={article.searchTerm}
+                  onChange={e => handleArticleChange(index, 'searchTerm', e.target.value)}
+                />
+                {article.showResults && article.searchTerm && (
+                  <ListGroup>
+                    {medicaments
+                      .filter(m => m[1].toLowerCase().includes(article.searchTerm.toLowerCase()))
+                      .map((m, i) => (
+                        <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(index, m)}>
+                          {m[1]}
+                        </ListGroup.Item>
+                      ))}
+                  </ListGroup>
+                )}
               </Col>
               <Col md={3}>
                 <Form.Control type="number" value={article.quantite} onChange={e => handleArticleChange(index, 'quantite', Number(e.target.value))} />

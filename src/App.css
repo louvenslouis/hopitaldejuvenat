@@ -15,7 +15,7 @@
   filter: drop-shadow(0 0 2em #646cffaa);
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop_shadow(0 0 2em #61dafbaa);
 }
 
 @keyframes logo-spin {
@@ -39,4 +39,18 @@
 
 .read-the-docs {
   color: #888;
+}
+
+main {
+  transition: margin-left 0.3s ease;
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+main.collapsed {
+  margin-left: 80px; /* Same as collapsed sidebar width */
+}
+
+main.expanded {
+  margin-left: 250px; /* Same as expanded sidebar width */
 }

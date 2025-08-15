@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getDB } from '../../db';
 
 const ExpiringStockReport: React.FC = () => {
   const [expiringStock, setExpiringStock] = useState<any[]>([]);

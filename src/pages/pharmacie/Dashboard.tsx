@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Alert } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getDB } from '../../db';
 
 const Dashboard: React.FC = () => {
   const [totalMedicaments, setTotalMedicaments] = useState(0);

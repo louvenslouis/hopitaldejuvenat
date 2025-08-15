@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import AddSortieModal from '../components/AddSortieModal';
+import { Button, Form, InputGroup } from 'react-bootstrap';
+import { getDB } from '../../db';
+import AddSortieModal from '../../components/AddSortieModal';
+import SortieCard from '../../components/SortieCard';
 
 const Sorties: React.FC = () => {
   const [sorties, setSorties] = useState<any[]>([]);
@@ -29,12 +30,12 @@ const Sorties: React.FC = () => {
 
     if (searchTerm) {
       query += `
-        WHERE p.prenom LIKE ? OR p.nom LIKE ? OR s.service LIKE ? OR s.employe LIKE ?
+        WHERE LOWER(p.prenom || ' ' || p.nom) LIKE LOWER(?)
+        OR LOWER(s.service) LIKE LOWER(?)
+        OR LOWER(s.employe) LIKE LOWER(?)
       `;
-      params.push(`%${searchTerm}%`);
-      params.push(`%${searchTerm}%`);
-      params.push(`%${searchTerm}%`);
-      params.push(`%${searchTerm}%`);
+      const searchTermLike = `%${searchTerm}%`;
+      params.push(searchTermLike, searchTermLike, searchTermLike);
     }
 
     query += `
@@ -80,39 +81,11 @@ const Sorties: React.FC = () => {
           )}
         </InputGroup>
       </div>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Date de sortie</th>
-            <th>Service</th>
-            <th>Employé</th>
-            <th>Patient</th>
-            <th>Chambre</th>
-            <th>Statut Sync</th>
-            <th>Médicaments</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorties.map((sortie, index) => (
-            <tr key={index}>
-              <td>{sortie[0]}</td>
-              <td>{new Date(sortie[1]).toLocaleString('fr-HT', { year: 'numeric', month: '2-digit', day: '2-digit' })}</td>
-              <td>{sortie[2]}</td>
-              <td>{sortie[3]}</td>
-              <td>{sortie[4]}</td>
-              <td>{sortie[5]}</td>
-              <td>
-                {sortie[6] === 'synced' && <span title="Synchronisé">✅</span>}
-                {sortie[6] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-                {sortie[6] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-                {sortie[6] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-              </td>
-              <td>{sortie[7]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="card-grid">
+        {sorties.map((sortie, index) => (
+          <SortieCard key={index} sortie={sortie} />
+        ))}
+      </div>
       <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
     </div>
   );

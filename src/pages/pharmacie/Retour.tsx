@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import AddRetourModal from '../components/AddRetourModal';
-import EditRetourModal from '../components/EditRetourModal';
+import { Button, Form, InputGroup } from 'react-bootstrap';
+import { getDB } from '../../db';
+import AddRetourModal from '../../components/AddRetourModal';
+import EditRetourModal from '../../components/EditRetourModal';
+import RetourCard from '../../components/RetourCard';
 
 const Retour: React.FC = () => {
   const [retours, setRetours] = useState<any[]>([]);
@@ -17,7 +18,7 @@ const Retour: React.FC = () => {
     const params: (string | number)[] = [];
 
     if (searchTerm) {
-      query += " WHERE lm.nom LIKE ?";
+      query += " WHERE LOWER(lm.nom) LIKE LOWER(?)";
       params.push(`%${searchTerm}%`);
     }
 
@@ -72,38 +73,11 @@ const Retour: React.FC = () => {
           )}
         </InputGroup>
       </div>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Médicament</th>
-            <th>Quantité</th>
-            <th>Date d'enregistrement</th>
-            <th>Statut Sync</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {retours.map((retour, index) => (
-            <tr key={index}>
-              <td>{retour[0]}</td>
-              <td>{retour[1]}</td>
-              <td>{retour[2]}</td>
-              <td>{new Date(retour[3]).toLocaleString('fr-HT')}</td>
-              <td>
-                {retour[4] === 'synced' && <span title="Synchronisé">✅</span>}
-                {retour[4] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-                {retour[4] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-                {retour[4] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-              </td>
-              <td>
-                <Button variant="warning" size="sm" onClick={() => handleEdit(retour[0] as number)}>Modifier</Button>
-                <Button variant="danger" size="sm" className="ms-2" onClick={() => handleDelete(retour[0] as number)}>Supprimer</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="card-grid">
+        {retours.map((retour, index) => (
+          <RetourCard key={index} retour={retour} onEdit={handleEdit} onDelete={handleDelete} />
+        ))}
+      </div>
       <AddRetourModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
       <EditRetourModal
         show={showEditModal}
