@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from 'react-bootstrap';
 import { getDB } from '../../db';
-import AddStockAdjustmentModal from '../../components/AddStockAdjustmentModal';
-import StockAdjustmentCard from '../../components/StockAdjustmentCard';
+import EditableMedicamentCard from '../../components/EditableMedicamentCard';
+import { Form } from 'react-bootstrap';
 
 const StockAdjustments: React.FC = () => {
-  const [adjustments, setAdjustments] = useState<any[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
     const db = await getDB();
-    const result = db.exec("SELECT sa.id, lm.nom, sa.quantite_ajustee, sa.raison, sa.date_ajustement, sa.sync_status FROM stock_adjustments sa JOIN liste_medicaments lm ON sa.article_id = lm.id ORDER BY sa.date_ajustement DESC");
+    const result = db.exec("SELECT id, nom FROM liste_medicaments ORDER BY nom ASC");
     if (result.length > 0) {
-      setAdjustments(result[0].values);
-    } else {
-      setAdjustments([]);
+      setMedicaments(result[0].values);
     }
   };
 
@@ -22,16 +19,29 @@ const StockAdjustments: React.FC = () => {
     fetchData();
   }, []);
 
+  const filteredMedicaments = medicaments.filter(m => 
+    m[1].toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
-      <h1>Ajustements de Stock</h1>
-      <Button variant="primary" className="mb-3" onClick={() => setShowAddModal(true)}>Nouvel Ajustement</Button>
+      <h1>Ajustement des Stocks</h1>
+      <p>Modifiez directement la quantité en stock pour chaque médicament. Cliquez sur "Enregistrer" pour sauvegarder un ajustement.</p>
+      
+      <Form.Group className="mb-3">
+        <Form.Control 
+          type="text" 
+          placeholder="Rechercher un médicament..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+      </Form.Group>
+
       <div className="card-grid">
-        {adjustments.map((adj, index) => (
-          <StockAdjustmentCard key={index} adjustment={adj} />
+        {filteredMedicaments.map((med) => (
+          <EditableMedicamentCard key={med[0]} medicament={med} />
         ))}
       </div>
-      <AddStockAdjustmentModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
     </div>
   );
 };

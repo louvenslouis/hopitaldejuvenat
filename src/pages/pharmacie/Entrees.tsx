@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, InputGroup, ListGroup } from 'react-bootstrap';
+import { Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import { getDB } from '../../db';
 import EntreeCard from '../../components/EntreeCard';
 
@@ -11,21 +11,12 @@ const Entrees: React.FC = () => {
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
   const [quantite, setQuantite] = useState<number>(0);
   const [dateExpiration, setDateExpiration] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
     const db = await getDB();
-    let query = "SELECT stock.id, stock.quantite, stock.date_enregistrement, liste_medicaments.nom, stock.sync_status, stock.date_expiration FROM stock JOIN liste_medicaments ON stock.article_id = liste_medicaments.id";
-    const params: (string | number)[] = [];
-
-    if (searchTerm) {
-      query += " WHERE LOWER(liste_medicaments.nom) LIKE LOWER(?)";
-      params.push(`%${searchTerm}%`);
-    }
-
-    query += " ORDER BY stock.date_enregistrement DESC";
-
-    const entreesResult = db.exec(query, params);
+    const query = "SELECT stock.id, stock.quantite, stock.date_enregistrement, liste_medicaments.nom, stock.sync_status, stock.date_expiration FROM stock JOIN liste_medicaments ON stock.article_id = liste_medicaments.id ORDER BY stock.date_enregistrement DESC";
+    
+    const entreesResult = db.exec(query);
     if (entreesResult.length > 0) {
       setEntrees(entreesResult[0].values);
     } else {
@@ -40,7 +31,7 @@ const Entrees: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm]);
+  }, []);
 
   const handleMedicamentSelect = (medicament: any) => {
     setSelectedMedicament(medicament[0]);
@@ -50,23 +41,15 @@ const Entrees: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedMedicament && quantite > 0 && dateExpiration) {
+    if (selectedMedicament && quantite > 0) { // Date d'expiration optionnelle
       const db = await getDB();
-      await db.run("INSERT INTO stock (article_id, quantite, date_expiration, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)", [selectedMedicament, quantite, dateExpiration]);
+      await db.run("INSERT INTO stock (article_id, quantite, date_expiration, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)", [selectedMedicament, quantite, dateExpiration || null]);
       fetchData();
       setSelectedMedicament(undefined);
       setMedicamentSearchTerm('');
       setQuantite(0);
       setDateExpiration('');
     }
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm('');
   };
 
   return (
@@ -82,6 +65,7 @@ const Entrees: React.FC = () => {
                 placeholder="Rechercher un médicament..."
                 value={medicamentSearchTerm}
                 onChange={e => { setMedicamentSearchTerm(e.target.value); setShowMedicamentResults(true); }}
+                required
               />
               {showMedicamentResults && medicamentSearchTerm && (
                 <ListGroup>
@@ -99,7 +83,7 @@ const Entrees: React.FC = () => {
           <Col md={3}>
             <Form.Group>
               <Form.Label>Quantité</Form.Label>
-              <Form.Control type="number" value={quantite} onChange={e => setQuantite(Number(e.target.value))} />
+              <Form.Control type="number" value={quantite} onChange={e => setQuantite(Number(e.target.value))} required />
             </Form.Group>
           </Col>
           <Col md={2}>
@@ -113,21 +97,6 @@ const Entrees: React.FC = () => {
           </Col>
         </Row>
       </Form>
-
-      <div className="d-flex justify-content-end mb-3">
-        <InputGroup style={{ width: '300px' }}>
-          <Form.Control
-            placeholder="Rechercher par médicament..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-          {searchTerm && (
-            <Button variant="outline-secondary" onClick={handleClearSearch}>
-              Clear
-            </Button>
-          )}
-        </InputGroup>
-      </div>
 
       <div className="card-grid">
         {entrees.map((entree, index) => (
