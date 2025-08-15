@@ -24,7 +24,8 @@ const Sorties: React.FC = () => {
         p.prenom || ' ' || p.nom as patient_nom,
         s.chambre,
         s.sync_status,
-        GROUP_CONCAT(sd.quantite || ' ' || lm.nom, ', ')
+        GROUP_CONCAT(sd.quantite || ' ' || lm.nom, ', '),
+        s.memo
       FROM sorties s
       LEFT JOIN patient p ON s.patient_id = p.id
       LEFT JOIN sorties_details sd ON s.id = sd.sortie_id

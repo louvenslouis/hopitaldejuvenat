@@ -169,7 +169,7 @@ export const getStockTotal = async (articleId: number): Promise<number> => {
 export const getSortieTotal = async (articleId: number): Promise<number> => {
     const db = await getDB();
     const result = db.exec(
-        "SELECT SUM(quantite) as total FROM sorties WHERE article_id = ?",
+        "SELECT SUM(quantite) as total FROM sorties_details WHERE article_id = ?",
         [articleId]
     );
 
