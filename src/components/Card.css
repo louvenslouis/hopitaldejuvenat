@@ -36,3 +36,12 @@
 .expanded-info {
   padding: 0 1rem 1rem;
 }
+
+.custom-card.saving {
+  border-color: #ffc107; /* Bootstrap warning color */
+}
+
+.custom-card.success .form-control {
+  border-color: #28a745; /* Bootstrap success color */
+  transition: border-color 0.5s ease-in-out;
+}
