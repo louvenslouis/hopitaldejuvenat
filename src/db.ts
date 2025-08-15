@@ -149,3 +149,73 @@ export const getDB = (): Promise<DBManager> => {
   }
   return dbPromise;
 };
+
+// Function to get the total stock for a given article_id
+export const getStockTotal = async (articleId: number): Promise<number> => {
+    const db = await getDB();
+    const result = db.exec(
+        "SELECT SUM(quantite) as total FROM stock WHERE article_id = ?",
+        [articleId]
+    );
+
+    if (result.length > 0 && result[0].values.length > 0 && result[0].values[0][0] !== null) {
+        return result[0].values[0][0] as number;
+    }
+
+    return 0;
+};
+
+// Function to get the total quantity for a given article_id from the sorties table
+export const getSortieTotal = async (articleId: number): Promise<number> => {
+    const db = await getDB();
+    const result = db.exec(
+        "SELECT SUM(quantite) as total FROM sorties WHERE article_id = ?",
+        [articleId]
+    );
+
+    if (result.length > 0 && result[0].values.length > 0 && result[0].values[0][0] !== null) {
+        return result[0].values[0][0] as number;
+    }
+
+    return 0;
+};
+
+// Function to get the total quantity for a given article_id from the retours table
+export const getRetourTotal = async (articleId: number): Promise<number> => {
+    const db = await getDB();
+    const result = db.exec(
+        "SELECT SUM(quantite) as total FROM retours WHERE article_id = ?",
+        [articleId]
+    );
+
+    if (result.length > 0 && result[0].values.length > 0 && result[0].values[0][0] !== null) {
+        return result[0].values[0][0] as number;
+    }
+
+    return 0;
+};
+
+// Function to get the total adjusted quantity for a given article_id from the stock_adjustments table
+export const getStockAdjustmentTotal = async (articleId: number): Promise<number> => {
+    const db = await getDB();
+    const result = db.exec(
+        "SELECT SUM(quantite_ajustee) as total FROM stock_adjustments WHERE article_id = ?",
+        [articleId]
+    );
+
+    if (result.length > 0 && result[0].values.length > 0 && result[0].values[0][0] !== null) {
+        return result[0].values[0][0] as number;
+    }
+
+    return 0;
+};
+
+// Function to calculate the current stock for a given article_id
+export const calculateCurrentStock = async (articleId: number): Promise<number> => {
+    const stockTotal = await getStockTotal(articleId);
+    const sortieTotal = await getSortieTotal(articleId);
+    const retourTotal = await getRetourTotal(articleId);
+    const stockAdjustmentTotal = await getStockAdjustmentTotal(articleId);
+
+    return stockTotal - sortieTotal + retourTotal + stockAdjustmentTotal;
+};

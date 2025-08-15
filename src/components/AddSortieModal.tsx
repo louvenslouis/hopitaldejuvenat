@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, Alert, ListGroup } from 'react-bootstrap';
+import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
 import { getDB } from '../db';
 import { v4 as uuidv4 } from 'uuid';
+import AddPatientModal from './AddPatientModal';
+import AddMedicamentModal from './AddMedicamentModal';
 
 interface AddSortieModalProps {
   show: boolean;
@@ -21,6 +24,8 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [memo, setMemo] = useState('');
   const [articles, setArticles] = useState<any[]>([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
   const [stockError, setStockError] = useState<string | null>(null);
+  const [showAddPatientModal, setShowAddPatientModal] = useState(false);
+  const [showAddMedicamentModal, setShowAddMedicamentModal] = useState(false);
 
   const resetState = () => {
     setSelectedPatient(undefined);
@@ -34,18 +39,19 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     setStockError(null);
   };
 
+  const fetchData = async () => {
+    const db = await getDB();
+    const patientsResult = db.exec("SELECT id, prenom, nom FROM patient");
+    if (patientsResult.length > 0) {
+      setPatients(patientsResult[0].values);
+    }
+    const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
+    if (medicamentsResult.length > 0) {
+      setMedicaments(medicamentsResult[0].values);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const db = await getDB();
-      const patientsResult = db.exec("SELECT id, prenom, nom FROM patient");
-      if (patientsResult.length > 0) {
-        setPatients(patientsResult[0].values);
-      }
-      const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-      if (medicamentsResult.length > 0) {
-        setMedicaments(medicamentsResult[0].values);
-      }
-    };
     if (show) {
       fetchData();
     }
@@ -125,112 +131,94 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" onExited={resetState}>
-      <Modal.Header closeButton>
-        <Modal.Title>Créer une sortie</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Patient</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Rechercher un patient..."
-                  value={patientSearchTerm}
-                  onChange={e => { setPatientSearchTerm(e.target.value); setShowPatientResults(true); }}
-                />
-                {showPatientResults && patientSearchTerm && (
-                  <ListGroup>
-                    {patients
-                      .filter(p => `${p[1]} ${p[2]}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
-                      .map((p, i) => (
-                        <ListGroup.Item key={i} onClick={() => handlePatientSelect(p)}>
-                          {p[1]} {p[2]}
-                        </ListGroup.Item>
-                      ))}
-                  </ListGroup>
-                )}
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Service</Form.Label>
-                <Form.Select value={service} onChange={e => setService(e.target.value)}>
-                  <option>Clinique externe</option>
-                  <option>Urgence</option>
-                  <option>Medecine Interne</option>
-                  <option>Maternité</option>
-                  <option>SOP</option>
-                  <option>Pediatrie</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Employé</Form.Label>
-                <Form.Select value={employe} onChange={e => setEmploye(e.target.value)}>
-                  <option>Azor</option>
-                  <option>Naika</option>
-                  <option>Tamara</option>
-                  <option>Voltaire</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Chambre</Form.Label>
-                <Form.Control type="number" value={chambre} onChange={e => setChambre(Number(e.target.value))} />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Form.Group className="mb-3">
-            <Form.Label>Memo</Form.Label>
-            <Form.Control as="textarea" rows={3} value={memo} onChange={e => setMemo(e.target.value)} />
-          </Form.Group>
-
-          {stockError && <Alert variant="danger">{stockError}</Alert>}
-
-          <h5>Articles</h5>
-          {articles.map((article, index) => (
-            <Row key={index} className="mb-2">
-              <Col md={7}>
-                <Form.Control
-                  type="text"
-                  placeholder="Rechercher un médicament..."
-                  value={article.searchTerm}
-                  onChange={e => handleArticleChange(index, 'searchTerm', e.target.value)}
-                />
-                {article.showResults && article.searchTerm && (
-                  <ListGroup>
-                    {medicaments
-                      .filter(m => m[1].toLowerCase().includes(article.searchTerm.toLowerCase()))
-                      .map((m, i) => (
-                        <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(index, m)}>
-                          {m[1]}
-                        </ListGroup.Item>
-                      ))}
-                  </ListGroup>
-                )}
+    <>
+      <Modal show={show} onHide={onHide} size="lg" onExited={resetState}>
+        <Modal.Header closeButton>
+          <Modal.Title>Créer une sortie</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Patient</Form.Label>
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      placeholder="Rechercher un patient..."
+                      value={patientSearchTerm}
+                      onChange={e => { setPatientSearchTerm(e.target.value); setShowPatientResults(true); }}
+                    />
+                    <Button variant="outline-secondary" onClick={() => setShowAddPatientModal(true)}>Nouveau</Button>
+                  </InputGroup>
+                  {showPatientResults && patientSearchTerm && (
+                    <ListGroup>
+                      {patients
+                        .filter(p => `${p[1]} ${p[2]}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
+                        .map((p, i) => (
+                          <ListGroup.Item key={i} onClick={() => handlePatientSelect(p)}>
+                            {p[1]} {p[2]}
+                          </ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                  )}
+                </Form.Group>
               </Col>
-              <Col md={3}>
-                <Form.Control type="number" value={article.quantite} onChange={e => handleArticleChange(index, 'quantite', Number(e.target.value))} />
-              </Col>
-              <Col md={2}>
-                <Button variant="danger" onClick={() => removeArticle(index)}>X</Button>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Service</Form.Label>
+                  <Form.Select value={service} onChange={e => setService(e.target.value)}>
+                    <option>Clinique externe</option>
+                    <option>Urgence</option>
+                    <option>Medecine Interne</option>
+                    <option>Maternité</option>
+                    <option>SOP</option>
+                    <option>Pediatrie</option>
+                  </Form.Select>
+                </Form.Group>
               </Col>
             </Row>
-          ))}
-          <Button variant="secondary" onClick={addArticle} className="mt-2">Ajouter un article</Button>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Employé</Form.Label>
+                  <Form.Select value={employe} onChange={e => setEmploye(e.target.value)}>
+                    <option>Azor</option>
+                    <option>Naika</option>
+                    <option>Tamara</option>
+                    <option>Voltaire</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Chambre</Form.Label>
+                  <Form.Control type="number" value={chambre} onChange={e => setChambre(Number(e.target.value))} />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>Memo</Form.Label>
+              <Form.Control as="textarea" rows={3} value={memo} onChange={e => setMemo(e.target.value)} />
+            </Form.Group>
 
-          <Button variant="primary" type="submit" className="mt-4">Enregistrer la sortie</Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
-  );
-};
+            {stockError && <Alert variant="danger">{stockError}</Alert>}
 
-export default AddSortieModal;
+            <h5>Articles</h5>
+            {articles.map((article, index) => (
+              <Row key={index} className="mb-2">
+                <Col md={7}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Rechercher un médicament..."
+                    value={article.searchTerm}
+                    onChange={e => handleArticleChange(index, 'searchTerm', e.target.value)}
+                  />
+                  {article.showResults && article.searchTerm && (
+                    <ListGroup>
+                      {medicaments
+                        .filter(m => m[1].toLowerCase().includes(article.searchTerm.toLowerCase()))
+                        .map((m, i) => (
+                          <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(index, m)}>
+                            {m[1]}
+                          </ListG

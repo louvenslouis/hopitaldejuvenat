@@ -1,12 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getDB } from '../../db';
 import AddSortieModal from '../../components/AddSortieModal';
+import EditSortieModal from '../../components/EditSortieModal';
 import SortieCard from '../../components/SortieCard';
 
 const Sorties: React.FC = () => {
   const [sorties, setSorties] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSortie, setSelectedSortie] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
@@ -55,6 +59,20 @@ const Sorties: React.FC = () => {
     fetchData();
   }, [searchTerm]);
 
+  const handleEdit = (sortie: any) => {
+    setSelectedSortie(sortie);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette sortie ?')) {
+      const db = await getDB();
+      await db.run("DELETE FROM sorties WHERE id = ?", [id]);
+      await db.run("DELETE FROM sorties_details WHERE sortie_id = ?", [id]);
+      fetchData();
+    }
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -83,10 +101,18 @@ const Sorties: React.FC = () => {
       </div>
       <div className="card-grid">
         {sorties.map((sortie, index) => (
-          <SortieCard key={index} sortie={sortie} />
+          <SortieCard key={index} sortie={sortie} onEdit={handleEdit} onDelete={handleDelete} />
         ))}
       </div>
-      <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
+      <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); fetchData(); }} />
+      {selectedSortie && 
+        <EditSortieModal 
+          show={showEditModal} 
+          onHide={() => setShowEditModal(false)} 
+          onSuccess={() => { setShowEditModal(false); fetchData(); }} 
+          sortie={selectedSortie} 
+        />
+      }
     </div>
   );
 };
