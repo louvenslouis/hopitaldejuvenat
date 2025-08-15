@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
 import { getDB } from '../db';
@@ -221,4 +220,47 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                         .map((m, i) => (
                           <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(index, m)}>
                             {m[1]}
-                          </ListG
+                          </ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                  )}
+                </Col>
+                <Col md={3}>
+                  <Form.Control type="number" value={article.quantite} onChange={e => handleArticleChange(index, 'quantite', Number(e.target.value))} />
+                </Col>
+                <Col md={2}>
+                  <Button variant="danger" onClick={() => removeArticle(index)}>X</Button>
+                </Col>
+              </Row>
+            ))}
+            <Button variant="secondary" onClick={addArticle} className="mt-2">Ajouter un article</Button>
+            <Button variant="info" onClick={() => setShowAddMedicamentModal(true)} className="mt-2 ms-2">Nouveau Médicament</Button>
+
+
+          <Button variant="primary" type="submit" className="mt-4">Enregistrer la sortie</Button>
+        </Form>
+      </Modal.Body>
+    </Modal>
+
+    <AddPatientModal 
+      show={showAddPatientModal} 
+      onHide={() => setShowAddPatientModal(false)} 
+      onSuccess={() => {
+        setShowAddPatientModal(false);
+        fetchData();
+      }} 
+    />
+
+    <AddMedicamentModal 
+      show={showAddMedicamentModal} 
+      onHide={() => setShowAddMedicamentModal(false)} 
+      onSuccess={() => {
+        setShowAddMedicamentModal(false);
+        fetchData();
+      }} 
+    />
+  </>
+  );
+};
+
+export default AddSortieModal;

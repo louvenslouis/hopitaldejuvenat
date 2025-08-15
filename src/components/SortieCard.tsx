@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import './Card.css';
@@ -58,3 +57,5 @@ const SortieCard: React.FC<SortieCardProps> = ({ sortie, onEdit, onDelete }) => 
     </div>
   );
 };
+
+export default SortieCard;
