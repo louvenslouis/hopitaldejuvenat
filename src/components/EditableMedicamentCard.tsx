@@ -20,10 +20,17 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
 
   const fetchStock = async () => {
     setIsLoading(true);
-    const currentStock = await calculateCurrentStock(medicamentId);
-    setInitialStock(currentStock);
-    setStock(currentStock);
-    setIsLoading(false);
+    try {
+      const currentStock = await calculateCurrentStock(medicamentId);
+      setInitialStock(currentStock);
+      setStock(currentStock);
+    } catch (error) {
+      console.error("Failed to fetch stock for medicament:", medicamentId, error);
+      setStock("Erreur"); // Display an error message
+    }
+    finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
