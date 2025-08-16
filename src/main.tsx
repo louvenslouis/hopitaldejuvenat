@@ -1,13 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css'
-import App from './App.tsx'
+import './index.css';
+import App from './App.tsx';
+import ErrorBoundary from './components/ErrorBoundary';
+import { SyncProvider } from './contexts/SyncContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
+    <ErrorBoundary>
+      <SyncProvider>
+        <App />
+      </SyncProvider>
+    </ErrorBoundary>
+  </StrictMode>
 );
 
 // Register service worker
