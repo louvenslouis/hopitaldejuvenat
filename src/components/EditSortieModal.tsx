@@ -49,8 +49,13 @@ const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSucce
 
         setService(sortie[2]);
         setEmploye(sortie[3]);
-        const chambreValue = parseInt(sortie[5] as string, 10);
-        setChambre(isNaN(chambreValue) ? undefined : chambreValue);
+        const rawChambre = sortie[5];
+        if (rawChambre === null) {
+          setChambre(undefined);
+        } else {
+          const chambreNum = Number(rawChambre);
+          setChambre(isNaN(chambreNum) ? undefined : chambreNum);
+        }
         setMemo(sortie[8]); // Correct index for memo
       }
     };
