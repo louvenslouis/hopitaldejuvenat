@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
+import ServiceSelectorPage from './pages/ServiceSelectorPage';
 import Dashboard from './pages/pharmacie/Dashboard';
 import Medicaments from './pages/pharmacie/Medicaments';
 import Patients from './pages/pharmacie/Patients';
