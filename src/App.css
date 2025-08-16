@@ -1,3 +1,4 @@
+
 :root {
   --sidebar-width: 250px;
   --sidebar-width-collapsed: 80px;
@@ -5,20 +6,64 @@
   --light-gray: #f8f9fa;
   --gray: #e9ecef;
   --dark-gray: #ced4da;
+  --header-height: 60px; /* Define a fixed height for the header */
 }
 
 body {
   background-color: var(--light-gray);
+  margin: 0; /* Remove default body margin */
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background-color: #ffffff;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--gray);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--header-height);
+}
+
+.user-info .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background-color: var(--light-gray);
+  border: 1px solid var(--dark-gray);
+}
+
+.user-info .material-icons {
+  font-size: 1.5rem;
 }
 
 .main-content-expanded {
   margin-left: var(--sidebar-width);
   transition: margin-left 0.3s ease;
+  padding: 2rem;
+  padding-top: calc(2rem + var(--header-height)); /* Adjust padding for header */
 }
 
 .main-content-collapsed {
   margin-left: var(--sidebar-width-collapsed);
   transition: margin-left 0.3s ease;
+  padding: 2rem;
+  padding-top: calc(2rem + var(--header-height)); /* Adjust padding for header */
 }
 
 .container-fluid {
@@ -52,9 +97,20 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto;
+    position: relative;
+  }
+
   .main-content-expanded,
   .main-content-collapsed {
-    margin-left: var(--sidebar-width-collapsed);
+    margin-left: 0;
+    padding-top: calc(1rem + var(--header-height)); /* Adjust for header */
   }
 
   .card-grid {

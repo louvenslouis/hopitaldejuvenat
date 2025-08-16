@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
 import { getDB } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import AddPatientModal from './AddPatientModal';
 import AddMedicamentModal from './AddMedicamentModal';
+import { useUser } from '../contexts/UserContext';
 
 interface AddSortieModalProps {
   show: boolean;
@@ -18,7 +20,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [showPatientResults, setShowPatientResults] = useState(false);
   const [service, setService] = useState('Clinique externe');
-  const [employe, setEmploye] = useState('Azor');
+  const [employe, setEmploye] = useState('');
   const [chambre, setChambre] = useState<number | undefined>();
   const [memo, setMemo] = useState('');
   const [articles, setArticles] = useState<any[]>([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
@@ -26,12 +28,14 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
   const [showAddMedicamentModal, setShowAddMedicamentModal] = useState(false);
 
+  const { activeUser } = useUser();
+
   const resetState = () => {
     setSelectedPatient(undefined);
     setPatientSearchTerm('');
     setShowPatientResults(false);
     setService('Clinique externe');
-    setEmploye('Azor');
+    setEmploye(activeUser ? activeUser.nom : ''); // Set default employee from active user
     setChambre(undefined);
     setMemo('');
     setArticles([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
@@ -53,8 +57,9 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   useEffect(() => {
     if (show) {
       fetchData();
+      setEmploye(activeUser ? activeUser.nom : ''); // Set employee when modal opens
     }
-  }, [show]);
+  }, [show, activeUser]);
 
   const handleArticleChange = (index: number, field: string, value: any) => {
     const newArticles = [...articles];
@@ -113,17 +118,18 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
       }
     }
 
-    await db.transaction(dbInstance => {
+    await db.transaction(async (tx) => {
       const sortieFirestoreDocId = uuidv4();
-      const sortieResult = dbInstance.prepare("INSERT INTO sorties (date_sortie, service, employe, patient_id, chambre, memo, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
+      const sortieResult = tx.prepare("INSERT INTO sorties (date_sortie, service, employe, patient_id, chambre, memo, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
       sortieResult.run([new Date().toISOString(), service, employe, selectedPatient ?? null, chambre ?? null, memo, 'pending_create', sortieFirestoreDocId]);
-      const sortieId = dbInstance.exec("SELECT last_insert_rowid()")[0].values[0][0];
+      const sortieId = tx.exec("SELECT last_insert_rowid()")[0].values[0][0];
       
-      const detailStmt = dbInstance.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, position_article, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
+      const detailStmt = tx.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, position_article, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
       articles.forEach((article, index) => {
         const detailFirestoreDocId = uuidv4();
         detailStmt.run([sortieId, article.article_id, article.quantite, index + 1, 'pending_create', detailFirestoreDocId]);
       });
+      detailStmt.free();
     });
     onSuccess();
     onHide();

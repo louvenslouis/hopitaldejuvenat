@@ -78,9 +78,20 @@ class DBManager {
       const sql = await response.text();
       db = new DBManager.SQL.Database();
       db.run(sql);
-      // Save the newly created database immediately
-      const data = db.export();
-      await idb.set(DB_FILE_KEY, data);
+    }
+
+    // Ensure personnel table exists
+    db.run(`
+      CREATE TABLE IF NOT EXISTS personnel (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom TEXT NOT NULL UNIQUE
+      );
+    `);
+
+    // Add some default personnel if the table is empty
+    const personnelCount = db.exec("SELECT COUNT(*) FROM personnel");
+    if (personnelCount[0].values[0][0] === 0) {
+      db.run("INSERT INTO personnel (nom) VALUES (?), (?), (?), (?)", ['Azor', 'Naika', 'Tamara', 'Voltaire']);
     }
 
     return new DBManager(db);

@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import Dashboard from './pages/pharmacie/Dashboard';
 import Medicaments from './pages/pharmacie/Medicaments';
@@ -50,26 +52,30 @@ function App() {
 
   return (
     <Router>
-      <div style={{ display: 'flex' }}>
+      <div className="app-layout">
         <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-        <main style={{ flexGrow: 1, padding: '2rem' }} className={isSidebarCollapsed ? 'main-content-collapsed' : 'main-content-expanded'}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/pharmacie/dashboard" element={<Dashboard />} />
-            <Route path="/pharmacie/medicaments" element={<Medicaments />} />
-            <Route path="/pharmacie/patients" element={<Patients />} />
-            <Route path="/pharmacie/entrees" element={<Entrees />} />
-            <Route path="/pharmacie/sorties" element={<Sorties />} />
-            <Route path="/pharmacie/retour" element={<Retour />} />
-            <Route path="/pharmacie/stock-report" element={<StockReport />} />
-            <Route path="/pharmacie/daily-sales-report" element={<DailySalesReport />} />
-            <Route path="/pharmacie/stock-adjustments" element={<StockAdjustments />} />
-            <Route path="/pharmacie/expiring-stock-report" element={<ExpiringStockReport />} />
-          </Routes>
-        </main>
+        <div className="main-content-wrapper">
+          <Header />
+          <main className={isSidebarCollapsed ? 'main-content-collapsed' : 'main-content-expanded'}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/pharmacie/dashboard" element={<Dashboard />} />
+              <Route path="/pharmacie/medicaments" element={<Medicaments />} />
+              <Route path="/pharmacie/patients" element={<Patients />} />
+              <Route path="/pharmacie/entrees" element={<Entrees />} />
+              <Route path="/pharmacie/sorties" element={<Sorties />} />
+              <Route path="/pharmacie/retour" element={<Retour />} />
+              <Route path="/pharmacie/stock-report" element={<StockReport />} />
+              <Route path="/pharmacie/daily-sales-report" element={<DailySalesReport />} />
+              <Route path="/pharmacie/stock-adjustments" element={<StockAdjustments />} />
+              <Route path="/pharmacie/expiring-stock-report" element={<ExpiringStockReport />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );
 }
+
 
 export default App;
