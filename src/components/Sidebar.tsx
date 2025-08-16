@@ -25,7 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   return (
     <Nav className={`flex-column sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        {!isCollapsed && <NavLink to="/" className="nav-link"><h5></h5></NavLink>}
         <button onClick={toggleSidebar} className="collapse-btn">
           <span className="material-icons">{isCollapsed ? 'menu' : 'chevron_left'}</span>
         </button>
@@ -60,18 +59,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       <NavLink to="/pharmacie/expiring-stock-report" className="nav-link">
         <span className="material-icons">warning</span> <span>Stock Expirant</span>
       </NavLink>
-
-      <div className="sidebar-footer">
-        <OverlayTrigger placement="right" delay={{ show: 250, hide: 400 }} overlay={renderTooltip}>
-          <div className={`sync-status ${syncStatus}`}>
-            {syncStatus === 'syncing' && <span className="material-icons spin">sync</span>}
-            {syncStatus === 'synced' && <span className="material-icons text-success">check_circle</span>}
-            {syncStatus === 'error' && <span className="material-icons text-danger">error</span>}
-            {syncStatus === 'idle' && <span className="material-icons">hourglass_empty</span>}
-            {!isCollapsed && <span className="sync-text">{syncStatus}</span>}
-          </div>
-        </OverlayTrigger>
-      </div>
     </Nav>
   );
 };

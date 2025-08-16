@@ -1,3 +1,4 @@
+
 :root {
   --sidebar-width: 250px;
   --sidebar-width-collapsed: 80px;
@@ -42,7 +43,7 @@ body {
   display: flex;
   justify-content: space-between; /* Space between hospital info and right section */
   align-items: center;
-  position: sticky;
+  /* position: sticky; */ /* Removed sticky position */
   top: 0;
   z-index: 1000;
   height: var(--header-height);
@@ -101,6 +102,7 @@ body {
 main.main-content {
   flex-grow: 1;
   padding: 2rem;
+  padding-top: calc(2rem + var(--header-height)); /* Adjust padding for header */
 }
 
 .container-fluid {
