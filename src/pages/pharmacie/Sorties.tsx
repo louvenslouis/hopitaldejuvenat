@@ -95,7 +95,7 @@ const Sorties: React.FC = () => {
       </div>
       <div className="card-grid">
         {sorties.map((sortie, index) => (
-          <SortieCard key={index} sortie={sortie} onEdit={() => {}} onDelete={handleDelete} />
+          <SortieCard key={index} sortie={sortie} onDelete={handleDelete} />
         ))}
       </div>
       <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); fetchData(); }} />
