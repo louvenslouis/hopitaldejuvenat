@@ -68,8 +68,10 @@ const Sorties: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette sortie ?')) {
       const db = await getDB();
-      await db.run("DELETE FROM sorties WHERE id = ?", [id]);
-      await db.run("DELETE FROM sorties_details WHERE sortie_id = ?", [id]);
+      await db.transaction(async (tx) => {
+        tx.run("UPDATE sorties SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [id]);
+        tx.run("UPDATE sorties_details SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE sortie_id = ?", [id]);
+      });
       fetchData();
     }
   };

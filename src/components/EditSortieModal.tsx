@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import { getDB } from '../db';
+import { v4 as uuidv4 } from 'uuid';
 
 interface EditSortieModalProps {
   show: boolean;
@@ -13,6 +14,7 @@ interface EditSortieModalProps {
 const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSuccess, sortie }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<number | undefined>();
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [showPatientResults, setShowPatientResults] = useState(false);
   const [service, setService] = useState('');
@@ -38,7 +40,13 @@ const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSucce
         if (sortieDetailsResult.length > 0) {
           setArticles(sortieDetailsResult[0].values.map(d => ({ article_id: d[0], quantite: d[1], searchTerm: d[2], showResults: false })));
         }
-        setPatientSearchTerm(sortie[4] ? `${sortie[4]}`: '');
+        const patientResult = db.exec("SELECT id, prenom, nom FROM patient WHERE id = (SELECT patient_id FROM sorties WHERE id = ?)", [sortie[0]]);
+        if (patientResult.length > 0 && patientResult[0].values.length > 0) {
+          const patient = patientResult[0].values[0];
+          setSelectedPatient(patient[0]);
+          setPatientSearchTerm(`${patient[1]} ${patient[2]}`);
+        }
+
         setService(sortie[2]);
         setEmploye(sortie[3]);
         setChambre(sortie[5]);
@@ -68,7 +76,7 @@ const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSucce
   }
 
   const handlePatientSelect = (patient: any) => {
-    // setSelectedPatient(patient[0]);
+    setSelectedPatient(patient[0]);
     setPatientSearchTerm(`${patient[1]} ${patient[2]}`);
     setShowPatientResults(false);
   }
@@ -85,8 +93,29 @@ const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSucce
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement update logic
-    console.log('Update logic not implemented');
+    const db = await getDB();
+
+    await db.transaction(async (tx) => {
+      // Update the main sortie record
+      tx.run(
+        "UPDATE sorties SET service = ?, employe = ?, patient_id = ?, chambre = ?, memo = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?",
+        [service, employe, selectedPatient, chambre, memo, sortie[0]]
+      );
+
+      // Mark old details for deletion
+      tx.run("UPDATE sorties_details SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE sortie_id = ?", [sortie[0]]);
+
+      // Insert new details
+      const detailStmt = tx.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP, ?)");
+      articles.forEach((article) => {
+        if (article.article_id && article.quantite > 0) {
+          const detailFirestoreDocId = uuidv4();
+          detailStmt.run([sortie[0], article.article_id, article.quantite, detailFirestoreDocId]);
+        }
+      });
+      detailStmt.free();
+    });
+
     onSuccess();
     onHide();
   };
