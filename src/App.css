@@ -40,12 +40,48 @@ body {
   padding: 1rem 2rem;
   border-bottom: 1px solid var(--gray);
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Space between hospital info and right section */
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 1000;
   height: var(--header-height);
+}
+
+.hospital-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hospital-logo {
+  height: 40px; /* Adjust as needed */
+  width: auto;
+}
+
+.header-right-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sync-status-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background-color: var(--light-gray);
+  border: 1px solid var(--dark-gray);
+}
+
+.sync-status-header .material-icons.spin {
+  animation: spin 2s linear infinite;
+}
+
+.sync-status-header .material-icons {
+  font-size: 1.5rem;
 }
 
 .user-info .dropdown-toggle {

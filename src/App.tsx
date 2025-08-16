@@ -58,7 +58,7 @@ function App() {
           <Header />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<ServiceSelectorPage />} />
               <Route path="/pharmacie/dashboard" element={<Dashboard />} />
               <Route path="/pharmacie/medicaments" element={<Medicaments />} />
               <Route path="/pharmacie/patients" element={<Patients />} />

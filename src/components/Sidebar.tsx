@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   return (
     <Nav className={`flex-column sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        {!isCollapsed && <NavLink to="/" className="nav-link"><h5>Hôpital de Juvénat</h5></NavLink>}
+        {!isCollapsed && <NavLink to="/" className="nav-link"><h5></h5></NavLink>}
         <button onClick={toggleSidebar} className="collapse-btn">
           <span className="material-icons">{isCollapsed ? 'menu' : 'chevron_left'}</span>
         </button>
