@@ -49,7 +49,7 @@ const EditSortieModal: React.FC<EditSortieModalProps> = ({ show, onHide, onSucce
 
         setService(sortie[2]);
         setEmploye(sortie[3]);
-        setChambre(sortie[5]);
+        setChambre(sortie[5] === null ? undefined : sortie[5]);
         setMemo(sortie[8]); // Correct index for memo
       }
     };
