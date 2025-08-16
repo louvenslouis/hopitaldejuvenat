@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
 import { getDB } from '../db';
@@ -19,7 +18,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [selectedPatient, setSelectedPatient] = useState<number | undefined>();
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [showPatientResults, setShowPatientResults] = useState(false);
-  const [service, setService] = useState('Clinique externe');
+  const [service, setService] = useState(''); // Initial state empty
   const [employe, setEmploye] = useState('');
   const [chambre, setChambre] = useState<number | undefined>();
   const [memo, setMemo] = useState('');
@@ -34,7 +33,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     setSelectedPatient(undefined);
     setPatientSearchTerm('');
     setShowPatientResults(false);
-    setService('Clinique externe');
+    setService(''); // Reset to empty
     setEmploye(activeUser ? activeUser.nom : ''); // Set default employee from active user
     setChambre(undefined);
     setMemo('');
@@ -101,12 +100,23 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     e.preventDefault();
     setStockError(null); // Clear previous errors
 
+    // Validate service selection
+    if (!service) {
+      setStockError("Veuillez sélectionner un service.");
+      return;
+    }
+
+    // Validate at least one article
+    const validArticles = articles.filter(article => article.article_id && article.quantite > 0);
+    if (validArticles.length === 0) {
+      setStockError("Veuillez ajouter au moins un article avec une quantité valide.");
+      return;
+    }
+
     const db = await getDB();
 
     // Perform stock check
-    for (const article of articles) {
-      if (!article.article_id || article.quantite <= 0) continue; // Skip invalid entries
-
+    for (const article of validArticles) {
       const stockResult = db.exec(`SELECT quantite_en_stock FROM liste_medicaments WHERE id = ?`, [article.article_id]);
       const currentStock = stockResult[0]?.values[0][0] || 0;
       const medicamentNameResult = db.exec(`SELECT nom FROM liste_medicaments WHERE id = ?`, [article.article_id]);
@@ -122,10 +132,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
       const sortieFirestoreDocId = uuidv4();
       const sortieResult = tx.prepare("INSERT INTO sorties (date_sortie, service, employe, patient_id, chambre, memo, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
       sortieResult.run([new Date().toISOString(), service, employe, selectedPatient ?? null, chambre ?? null, memo, 'pending_create', sortieFirestoreDocId]);
-      const sortieId = tx.exec("SELECT last_insert_rowid()")[0].values[0][0];
+      const sortieId = tx.exec("SELECT last_insert_rowid()")[0].values[0][0] as number;
       
       const detailStmt = tx.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, position_article, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
-      articles.forEach((article, index) => {
+      validArticles.forEach((article, index) => {
         const detailFirestoreDocId = uuidv4();
         detailStmt.run([sortieId, article.article_id, article.quantite, index + 1, 'pending_create', detailFirestoreDocId]);
       });
@@ -137,7 +147,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
   return (
     <>
-      <Modal show={show} onHide={onHide} size="lg" onExited={resetState}>
+      <Modal show={show} onHide={onHide} size="lg" onExited={resetState} backdrop="static" keyboard={false}> {/* Added backdrop and keyboard props */}
         <Modal.Header closeButton>
           <Modal.Title>Créer une sortie</Modal.Title>
         </Modal.Header>
@@ -172,7 +182,8 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Service</Form.Label>
-                  <Form.Select value={service} onChange={e => setService(e.target.value)}>
+                  <Form.Select value={service} onChange={e => setService(e.target.value)} required> {/* Added required */}
+                    <option value="">Sélectionner un service</option> {/* Added empty option */}
                     <option>Clinique externe</option>
                     <option>Urgence</option>
                     <option>Medecine Interne</option>
@@ -195,16 +206,19 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                   </Form.Select>
                 </Form.Group>
               </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Chambre</Form.Label>
-                  <Form.Control type="number" value={chambre} onChange={e => setChambre(Number(e.target.value))} />
-                </Form.Group>
-              </Col>
+              {/* Conditional rendering for Chambre field */}
+              {(service === 'Medecine Interne' || service === 'Maternité') && (
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Chambre</Form.Label>
+                    <Form.Control type="number" value={chambre} onChange={e => setChambre(Number(e.target.value))} />
+                  </Form.Group>
+                </Col>
+              )}
             </Row>
             <Form.Group className="mb-3">
               <Form.Label>Memo</Form.Label>
-              <Form.Control as="textarea" rows={3} value={memo} onChange={e => setMemo(e.target.value)} />
+              <Form.Control as="textarea" rows={1} value={memo} onChange={e => setMemo(e.target.value)} /> {/* Changed rows to 1 */}
             </Form.Group>
 
             {stockError && <Alert variant="danger">{stockError}</Alert>}
