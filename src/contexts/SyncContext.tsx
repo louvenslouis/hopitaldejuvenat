@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useContext, useCallback, type ReactNode } from 'react';
 import { syncData } from '../services/syncService';
 
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
