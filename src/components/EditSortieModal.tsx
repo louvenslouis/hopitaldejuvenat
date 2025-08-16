@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import { getDB } from '../db';
