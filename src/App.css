@@ -1,32 +1,3 @@
-:root {
-  --sidebar-width: 250px;
-  --sidebar-width-collapsed: 80px;
-  --primary-color: #0d6efd;
-  --light-gray: #f8f9fa;
-  --gray: #e9ecef;
-  --dark-gray: #ced4da;
-  --header-height: 60px; /* Define a fixed height for the header */
-}
-
-body {
-  background-color: var(--light-gray);
-  margin: 0; /* Remove default body margin */
-}
-
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.sidebar {
-  flex-shrink: 0; /* Prevent sidebar from shrinking */
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 1001; /* Ensure sidebar is above main content */
-}
-
 
 :root {
   --sidebar-width: 250px;
@@ -76,7 +47,6 @@ body {
   transition: left 0.3s ease;
 }
 
-
 .app-header.collapsed {
   left: var(--sidebar-width-collapsed);
 }
@@ -90,6 +60,13 @@ body {
 .hospital-logo {
   height: 40px; /* Adjust as needed */
   width: auto;
+}
+
+.hospital-name {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
 }
 
 .header-right-section {
