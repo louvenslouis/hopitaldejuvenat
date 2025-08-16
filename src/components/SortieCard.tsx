@@ -1,14 +1,14 @@
+
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import './Card.css';
 
 interface SortieCardProps {
   sortie: any;
-  onEdit: (sortie: any) => void;
   onDelete: (id: number) => void;
 }
 
-const SortieCard: React.FC<SortieCardProps> = ({ sortie, onEdit, onDelete }) => {
+const SortieCard: React.FC<SortieCardProps> = ({ sortie, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const sortieId = sortie[0];
@@ -34,7 +34,6 @@ const SortieCard: React.FC<SortieCardProps> = ({ sortie, onEdit, onDelete }) => 
             <span className="material-icons">more_vert</span>
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onEdit(sortie)}>Modifier</Dropdown.Item>
             <Dropdown.Item onClick={() => onDelete(sortieId)}>Supprimer</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
