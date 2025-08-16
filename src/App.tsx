@@ -54,8 +54,8 @@ function App() {
     <Router>
       <div className="app-layout">
         <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+        <Header isSidebarCollapsed={isSidebarCollapsed} /> {/* Pass isSidebarCollapsed to Header */}
         <div className={`main-content-area ${isSidebarCollapsed ? 'collapsed' : 'expanded'}`}>
-          <Header />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<ServiceSelectorPage />} />

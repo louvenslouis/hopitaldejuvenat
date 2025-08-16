@@ -1,4 +1,3 @@
-
 :root {
   --sidebar-width: 250px;
   --sidebar-width-collapsed: 80px;
@@ -21,32 +20,65 @@ body {
 
 .sidebar {
   flex-shrink: 0; /* Prevent sidebar from shrinking */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1001; /* Ensure sidebar is above main content */
 }
 
-.main-content-area {
-  flex-grow: 1;
+
+:root {
+  --sidebar-width: 250px;
+  --sidebar-width-collapsed: 80px;
+  --primary-color: #0d6efd;
+  --light-gray: #f8f9fa;
+  --gray: #e9ecef;
+  --dark-gray: #ced4da;
+  --header-height: 60px; /* Define a fixed height for the header */
+  --sidebar-bg-color: #343a40; /* Define sidebar background color */
+}
+
+body {
+  background-color: var(--light-gray);
+  margin: 0; /* Remove default body margin */
+}
+
+.app-layout {
   display: flex;
-  flex-direction: column;
-  /* Initial margin to account for sidebar */
-  margin-left: var(--sidebar-width);
-  transition: margin-left 0.3s ease;
+  min-height: 100vh;
 }
 
-.main-content-area.collapsed {
-  margin-left: var(--sidebar-width-collapsed);
+.sidebar {
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1001; /* Ensure sidebar is above main content */
+  background-color: var(--sidebar-bg-color); /* Use variable for sidebar color */
 }
 
 .app-header {
-  background-color: #ffffff;
+  background-color: var(--sidebar-bg-color); /* Use variable for header color */
   padding: 1rem 2rem;
   border-bottom: 1px solid var(--gray);
   display: flex;
   justify-content: space-between; /* Space between hospital info and right section */
   align-items: center;
-  /* position: sticky; */ /* Removed sticky position */
+  position: fixed; /* Fixed position for header */
   top: 0;
+  right: 0;
   z-index: 1000;
   height: var(--header-height);
+  /* Dynamic left margin based on sidebar state */
+  left: var(--sidebar-width);
+  transition: left 0.3s ease;
+}
+
+
+.app-header.collapsed {
+  left: var(--sidebar-width-collapsed);
 }
 
 .hospital-info {
@@ -99,10 +131,23 @@ body {
   font-size: 1.5rem;
 }
 
+.main-content-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  /* Initial margin to account for sidebar */
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+  padding-top: var(--header-height); /* Add padding for fixed header */
+}
+
+.main-content-area.collapsed {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
 main.main-content {
   flex-grow: 1;
   padding: 2rem;
-  padding-top: calc(2rem + var(--header-height)); /* Adjust padding for header */
 }
 
 .container-fluid {

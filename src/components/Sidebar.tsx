@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Nav } from 'react-bootstrap';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -10,9 +10,18 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
+  const location = useLocation();
+  const getServiceName = () => {
+    const path = location.pathname;
+    if (path.startsWith('/pharmacie')) return 'Pharmacie';
+    // Add more services here if needed
+    return '';
+  };
+
   return (
     <Nav className={`flex-column sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
+        {!isCollapsed && <h5 className="service-name">{getServiceName()}</h5>}
         <button onClick={toggleSidebar} className="collapse-btn">
           <span className="material-icons">{isCollapsed ? 'menu' : 'chevron_left'}</span>
         </button>

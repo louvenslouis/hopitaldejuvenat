@@ -5,10 +5,10 @@ import { useUser } from '../contexts/UserContext';
 import { useSync } from '../contexts/SyncContext';
 
 interface HeaderProps {
-  // No props needed for now, as it uses context
+  isSidebarCollapsed: boolean;
 }
 
-const Header: React.FC<HeaderProps> = () => {
+const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
   const { personnel, activeUser, setActiveUser } = useUser();
   const { syncStatus, lastSyncTime } = useSync();
 
@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = () => {
   return (
     <header className="app-header">
       <div className="hospital-info">
-        <img src="/path/to/your/logo.png" alt="Hospital Logo" className="hospital-logo" /> {/* Placeholder for logo */}
+                <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Hospital Logo" className="hospital-logo" /> {/* Placeholder for logo */}
         <h5>Hôpital de Juvénat</h5>
       </div>
       <div className="header-right-section">
