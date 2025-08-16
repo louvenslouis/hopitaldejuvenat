@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
   );
 
   return (
-    <header className="app-header">
+    <header className={`app-header ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       <div className="hospital-info">
                 <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Hospital Logo" className="hospital-logo" /> {/* Placeholder for logo */}
         <h5>Hôpital de Juvénat</h5>
