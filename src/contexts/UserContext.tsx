@@ -1,6 +1,5 @@
-
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { getDB } from './db';
+import React, { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
+import { getDB } from '../db';
 
 interface User {
   id: number;
@@ -24,7 +23,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const db = await getDB();
       const result = db.exec("SELECT id, nom FROM personnel");
       if (result.length > 0) {
-        const users = result[0].values.map(v => ({ id: v[0] as number, nom: v[1] as string }));
+        const users = result[0].values.map((v: any[]) => ({ id: v[0] as number, nom: v[1] as string }));
         setPersonnel(users);
         if (!activeUser && users.length > 0) {
           // Set a default active user
