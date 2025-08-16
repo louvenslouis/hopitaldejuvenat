@@ -116,7 +116,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     await db.transaction(dbInstance => {
       const sortieFirestoreDocId = uuidv4();
       const sortieResult = dbInstance.prepare("INSERT INTO sorties (date_sortie, service, employe, patient_id, chambre, memo, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
-      sortieResult.run([new Date().toISOString().slice(0, 10), service, employe, selectedPatient ?? null, chambre ?? null, memo, 'pending_create', sortieFirestoreDocId]);
+      sortieResult.run([new Date().toISOString(), service, employe, selectedPatient ?? null, chambre ?? null, memo, 'pending_create', sortieFirestoreDocId]);
       const sortieId = dbInstance.exec("SELECT last_insert_rowid()")[0].values[0][0];
       
       const detailStmt = dbInstance.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, position_article, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");

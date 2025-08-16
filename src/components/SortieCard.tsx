@@ -44,6 +44,7 @@ const SortieCard: React.FC<SortieCardProps> = ({ sortie, onDelete }) => {
           <p><span className="material-icons">local_hospital</span> Service: {service}</p>
           <p><span className="material-icons">badge</span> Employé: {employe}</p>
           <p><span className="material-icons">king_bed</span> Chambre: {sortie[5]}</p>
+          <p><span className="material-icons">note</span> Memo: {sortie[8]}</p>
           <p><span className="material-icons">medication</span> Médicaments: {sortie[7]}</p>
           <p>
               Statut Sync: {syncStatus === 'synced' && <span title="Synchronisé">✅</span>}
