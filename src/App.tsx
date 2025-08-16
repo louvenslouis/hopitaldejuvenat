@@ -16,8 +16,21 @@ import { useSync } from './contexts/SyncContext';
 import './App.css';
 
 function App() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 768);
   const { runSync } = useSync();
+
+  const handleResize = () => {
+    if (window.innerWidth < 768) {
+      setIsSidebarCollapsed(true);
+    } else {
+      setIsSidebarCollapsed(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Run sync on initial load
@@ -39,7 +52,7 @@ function App() {
     <Router>
       <div style={{ display: 'flex' }}>
         <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-        <main style={{ flexGrow: 1, padding: '2rem' }} className={isSidebarCollapsed ? 'collapsed' : 'expanded'}>
+        <main style={{ flexGrow: 1, padding: '2rem' }} className={isSidebarCollapsed ? 'main-content-collapsed' : 'main-content-expanded'}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pharmacie/dashboard" element={<Dashboard />} />

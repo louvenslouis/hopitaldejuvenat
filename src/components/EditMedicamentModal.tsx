@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getDB, calculateCurrentStock } from '../db';
+import { v4 as uuidv4 } from 'uuid';
 
 interface EditMedicamentModalProps {
   show: boolean;
@@ -14,6 +15,8 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   const [prix, setPrix] = useState(0);
   const [type, setType] = useState('Comprimé');
   const [presentation, setPresentation] = useState('');
+  const [currentStock, setCurrentStock] = useState(0);
+  const [newStock, setNewStock] = useState<number | string>('');
 
   useEffect(() => {
     if (medicamentId) {
@@ -26,16 +29,31 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
           setPrix(medicament[2] as number);
           setType(medicament[3] as string);
           setPresentation(medicament[4] as string);
+
+          const stock = await calculateCurrentStock(medicamentId);
+          setCurrentStock(stock);
+          setNewStock(stock);
         }
       };
       fetchMedicament();
     }
-  }, [medicamentId]);
+  }, [medicamentId, show]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const db = await getDB();
-    await db.run("UPDATE liste_medicaments SET nom = ?, prix = ?, type = ?, presentation = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [nom, prix, type, presentation, medicamentId]);
+
+    await db.transaction(async (tx) => {
+      tx.run("UPDATE liste_medicaments SET nom = ?, prix = ?, type = ?, presentation = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [nom, prix, type, presentation, medicamentId]);
+      
+      const stockAsNumber = Number(newStock);
+      if (!isNaN(stockAsNumber) && stockAsNumber !== currentStock) {
+        const adjustment = stockAsNumber - currentStock;
+        const adjustmentFirestoreDocId = uuidv4();
+        tx.run("INSERT INTO stock_adjustments (article_id, quantite_ajustee, raison, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)", [medicamentId, adjustment, 'Ajustement manuel (modification)', 'pending_create', adjustmentFirestoreDocId]);
+      }
+    });
+
     onSuccess();
     onHide();
   };
@@ -54,6 +72,14 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
           <Form.Group className="mb-3">
             <Form.Label>Prix</Form.Label>
             <Form.Control type="number" value={prix} onChange={e => setPrix(Number(e.target.value))} required />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Stock Actuel</Form.Label>
+            <Form.Control type="number" value={currentStock} readOnly disabled />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Nouveau Stock</Form.Label>
+            <Form.Control type="number" value={newStock} onChange={e => setNewStock(e.target.value)} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Type</Form.Label>
