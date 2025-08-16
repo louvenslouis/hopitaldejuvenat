@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Nav, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { Nav } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
-import { useSync } from '../contexts/SyncContext';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -11,17 +10,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
-  const { syncStatus, lastSyncTime } = useSync();
-
-  const renderTooltip = (props: any) => (
-    <Tooltip id="sync-tooltip" {...props}>
-      {syncStatus === 'syncing' && 'Synchronisation en cours...'}
-      {syncStatus === 'synced' && `Dernière synchro: ${lastSyncTime?.toLocaleTimeString()}`}
-      {syncStatus === 'error' && 'Erreur de synchronisation'}
-      {syncStatus === 'idle' && 'En attente de synchronisation'}
-    </Tooltip>
-  );
-
   return (
     <Nav className={`flex-column sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
