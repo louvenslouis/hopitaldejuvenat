@@ -24,8 +24,8 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
   return (
     <header className={`app-header ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       <div className="hospital-info">
-                <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Hospital Logo" className="hospital-logo" /> {/* Placeholder for logo */}
-        <h5 className="hospital-name">Hôpital de Juvénat</h5>
+                <img src=./assets/logo.png alt="Hospital Logo" className="hospital-logo" /> {/* Placeholder for logo */}
+        <h5 className="hospital-name">HOPITAL DE JUVENAT</h5>
       </div>
       <div className="header-right-section">
         <OverlayTrigger placement="bottom" delay={{ show: 250, hide: 400 }} overlay={renderSyncTooltip}>
