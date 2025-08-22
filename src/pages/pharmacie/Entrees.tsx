@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import { getCollection, addDocument, updateDocument } from '../../firebase/firestoreService';
 import EntreeCard from '../../components/EntreeCard';
+import { Medicament } from '../../types';
 
 const Entrees: React.FC = () => {
   const [entrees, setEntrees] = useState<any[]>([]);
-  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
@@ -14,10 +15,10 @@ const Entrees: React.FC = () => {
 
   const fetchData = async () => {
     const allEntrees = await getCollection('stock');
-    const allMedicaments = await getCollection('liste_medicaments');
+    const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
 
     const enrichedEntrees = allEntrees.map((entree: any) => {
-      const medicament = allMedicaments.find((med: any) => med.id === entree.article_id);
+      const medicament = allMedicaments.find((med: Medicament) => med.id === entree.article_id);
       return { ...entree, nom: medicament ? medicament.nom : 'Inconnu' };
     });
     setEntrees(enrichedEntrees.sort((a: any, b: any) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
@@ -29,7 +30,7 @@ const Entrees: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleMedicamentSelect = (medicament: any) => {
+  const handleMedicamentSelect = (medicament: Medicament) => {
     setSelectedMedicament(medicament.id);
     setMedicamentSearchTerm(medicament.nom);
     setShowMedicamentResults(false);
@@ -48,7 +49,7 @@ const Entrees: React.FC = () => {
       });
 
       // Update medicament stock
-      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
         await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
       }
@@ -79,7 +80,7 @@ const Entrees: React.FC = () => {
               {showMedicamentResults && medicamentSearchTerm && (
                 <ListGroup>
                   {medicaments
-                    .filter(m => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
+                    .filter((m: Medicament) => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
                     .map((m) => (
                       <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(m)}>
                         {m.nom}

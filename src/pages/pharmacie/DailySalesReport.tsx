@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
 import { getCollection } from '../../firebase/firestoreService';
+import { Medicament } from '../../types';
 
 const DailySalesReport: React.FC = () => {
   const [dailySales, setDailySales] = useState<any[]>([]);
@@ -8,14 +9,14 @@ const DailySalesReport: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       const allSorties = await getCollection('sorties');
-      const allMedicaments = await getCollection('liste_medicaments');
+      const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
 
       const salesByDate: { [key: string]: number } = {};
 
       allSorties.forEach((sortie: any) => {
         const date = new Date(sortie.date_sortie).toISOString().split('T')[0];
         sortie.articles.forEach((article: any) => {
-          const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+          const medicament = allMedicaments.find((med: Medicament) => med.id === article.article_id);
           if (medicament && medicament.prix !== undefined) {
             salesByDate[date] = (salesByDate[date] || 0) + (article.quantite * medicament.prix);
           }

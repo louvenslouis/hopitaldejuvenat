@@ -48,7 +48,7 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
         await addDocument('stock_adjustments', {
             article_id: medicamentDocId,
             quantite_ajustee: initialStock,
-            raison,
+            raison: reason,
             date_ajustement: new Date().toISOString(),
         });
     }

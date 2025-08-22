@@ -3,6 +3,7 @@ import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddSortieModal from '../../components/AddSortieModal';
 import SortieCard from '../../components/SortieCard';
+import { Medicament, Patient } from '../../types';
 
 const Sorties: React.FC = () => {
   const [sorties, setSorties] = useState<any[]>([]);
@@ -11,15 +12,15 @@ const Sorties: React.FC = () => {
 
   const fetchData = async () => {
     const allSorties = await getCollection('sorties');
-    const allPatients = await getCollection('patient');
-    const allMedicaments = await getCollection('liste_medicaments');
+    const allPatients = await getCollection('patient') as Patient[];
+    const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
 
     const enrichedSorties = allSorties.map((sortie: any) => {
-      const patient = allPatients.find((p: any) => p.id === sortie.patient_id);
+      const patient = allPatients.find((p: Patient) => p.id === sortie.patient_id);
       const patient_nom = patient ? `${patient.prenom} ${patient.nom}` : 'N/A';
 
       const articlesDetails = sortie.articles.map((article: any) => {
-        const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+        const medicament = allMedicaments.find((med: Medicament) => med.id === article.article_id);
         return `${article.quantite} ${medicament ? medicament.nom : 'Inconnu'}`;
       }).join(', ');
 

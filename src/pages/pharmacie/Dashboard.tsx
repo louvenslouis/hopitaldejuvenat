@@ -5,11 +5,12 @@ import KpiCard from '../../components/dashboard/KpiCard';
 import TopSoldMedicamentsChart from '../../components/dashboard/TopSoldMedicamentsChart';
 import SortiesPerDayChart from '../../components/dashboard/SortiesPerDayChart';
 import RecentSortiesTable from '../../components/dashboard/RecentSortiesTable';
+import { Medicament, Patient } from '../../types';
 
 const Dashboard: React.FC = () => {
-  const [expiringSoon, setExpiringSoon] = useState<any[]>([]);
-  const [outOfStock, setOutOfStock] = useState<any[]>([]);
-  const [lowStock, setLowStock] = useState<any[]>([]);
+  const [expiringSoon, setExpiringSoon] = useState<Medicament[]>([]);
+  const [outOfStock, setOutOfStock] = useState<Medicament[]>([]);
+  const [lowStock, setLowStock] = useState<Medicament[]>([]);
   const [topSold, setTopSold] = useState<any[]>([]);
   const [sortiesPerDay, setSortiesPerDay] = useState<any[]>([]);
   const [recentSorties, setRecentSorties] = useState<any[]>([]);
@@ -17,16 +18,16 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       // Expiring soon (in the next 30 days)
-      const allMedicaments = await getCollection('liste_medicaments');
+      const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      setExpiringSoon(allMedicaments.filter((med: any) => med.expiration_date && new Date(med.expiration_date) <= thirtyDaysFromNow));
+      setExpiringSoon(allMedicaments.filter((med: Medicament) => med.expiration_date && new Date(med.expiration_date) <= thirtyDaysFromNow));
 
       // Out of stock
-      setOutOfStock(allMedicaments.filter((med: any) => med.quantite_en_stock <= 0));
+      setOutOfStock(allMedicaments.filter((med: Medicament) => med.quantite_en_stock <= 0));
 
       // Low stock (< 10)
-      setLowStock(allMedicaments.filter((med: any) => med.quantite_en_stock > 0 && med.quantite_en_stock < 10));
+      setLowStock(allMedicaments.filter((med: Medicament) => med.quantite_en_stock > 0 && med.quantite_en_stock < 10));
 
       // Top 5 sold medicaments in the last 30 days
       const allSorties = await getCollection('sorties');
@@ -37,7 +38,7 @@ const Dashboard: React.FC = () => {
       allSorties.forEach((sortie: any) => {
         if (new Date(sortie.date_sortie) >= thirtyDaysAgo) {
           sortie.articles.forEach((article: any) => {
-            const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+            const medicament = allMedicaments.find((med: Medicament) => med.id === article.article_id);
             if (medicament) {
               salesData[medicament.nom] = (salesData[medicament.nom] || 0) + article.quantite;
             }
@@ -66,7 +67,7 @@ const Dashboard: React.FC = () => {
       setSortiesPerDay(sortedDailySorties);
 
       // Recent 5 sorties
-      const allPatients = await getCollection('patient');
+      const allPatients = await getCollection('patient') as Patient[];
       const recentSortiesData = allSorties
         .sort((a: any, b: any) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime())
         .slice(0, 5)
@@ -74,7 +75,7 @@ const Dashboard: React.FC = () => {
           date_sortie: sortie.date_sortie,
           service: sortie.service,
           employe: sortie.employe,
-          patient_nom: allPatients.find((p: any) => p.id === sortie.patient_id)?.nom || 'N/A',
+          patient_nom: allPatients.find((p: Patient) => p.id === sortie.patient_id)?.nom || 'N/A',
         }));
       setRecentSorties(recentSortiesData);
     };
@@ -109,7 +110,7 @@ const Dashboard: React.FC = () => {
         <Alert variant="warning" className="mt-4">
           <h5>⚠️ Médicaments à faible stock:</h5>
           <ul>
-            {lowStock.map((med: any) => (
+            {lowStock.map((med: Medicament) => (
               <li key={med.id}>{med.nom} (Stock: {med.quantite_en_stock})</li>
             ))}
           </ul>

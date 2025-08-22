@@ -4,6 +4,7 @@ import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddRetourModal from '../../components/AddRetourModal';
 import EditRetourModal from '../../components/EditRetourModal';
 import RetourCard from '../../components/RetourCard';
+import { Medicament } from '../../types';
 
 const Retour: React.FC = () => {
   const [retours, setRetours] = useState<any[]>([]);
@@ -14,10 +15,10 @@ const Retour: React.FC = () => {
 
   const fetchData = async () => {
     const allRetours = await getCollection('retour');
-    const allMedicaments = await getCollection('liste_medicaments');
+    const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
 
     const enrichedRetours = allRetours.map((retour: any) => {
-      const medicament = allMedicaments.find((med: any) => med.id === retour.article_id);
+      const medicament = allMedicaments.find((med: Medicament) => med.id === retour.article_id);
       return { ...retour, nom: medicament ? medicament.nom : 'Inconnu' };
     });
 
