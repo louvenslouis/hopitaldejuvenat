@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
@@ -12,7 +11,6 @@ import Sorties from './pages/pharmacie/Sorties';
 import Retour from './pages/pharmacie/Retour';
 import StockReport from './pages/pharmacie/StockReport';
 import DailySalesReport from './pages/pharmacie/DailySalesReport';
-import StockAdjustments from './pages/pharmacie/StockAdjustments';
 import ExpiringStockReport from './pages/pharmacie/ExpiringStockReport';
 import { useSync } from './contexts/SyncContext';
 import './App.css';
@@ -67,7 +65,6 @@ function App() {
               <Route path="/pharmacie/retour" element={<Retour />} />
               <Route path="/pharmacie/stock-report" element={<StockReport />} />
               <Route path="/pharmacie/daily-sales-report" element={<DailySalesReport />} />
-              <Route path="/pharmacie/stock-adjustments" element={<StockAdjustments />} />
               <Route path="/pharmacie/expiring-stock-report" element={<ExpiringStockReport />} />
             </Routes>
           </main>

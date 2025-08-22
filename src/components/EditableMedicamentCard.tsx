@@ -1,14 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
+import { Form, InputGroup, Dropdown, Button } from 'react-bootstrap';
 import { getDB, calculateCurrentStock } from '../db';
 import './Card.css';
 
 interface EditableMedicamentCardProps {
   medicament: any;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
-const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicament }) => {
+const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicament, onEdit, onDelete }) => {
   const [stock, setStock] = useState<number | string>('');
   const [initialStock, setInitialStock] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +91,15 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
           <span className="material-icons">medication</span>
           <span>{medicamentName}</span>
         </div>
+        <Dropdown onClick={(e) => e.stopPropagation()}>
+          <Dropdown.Toggle as={Button} variant="link" id={`dropdown-medicament-${medicamentId}`}>
+            <span className="material-icons">more_vert</span>
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => onEdit(medicamentId)}>Modifier</Dropdown.Item>
+            <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       </div>
       <div className="expanded-info">
         <hr />

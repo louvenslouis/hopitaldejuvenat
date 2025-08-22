@@ -50,9 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       <NavLink to="/pharmacie/daily-sales-report" className="nav-link">
         <span className="material-icons">today</span> <span>Vente Journalier</span>
       </NavLink>
-      <NavLink to="/pharmacie/stock-adjustments" className="nav-link">
-        <span className="material-icons">build</span> <span>Ajustements</span>
-      </NavLink>
+      
       <NavLink to="/pharmacie/expiring-stock-report" className="nav-link">
         <span className="material-icons">warning</span> <span>Stock Expirant</span>
       </NavLink>

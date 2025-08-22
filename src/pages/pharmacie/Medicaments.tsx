@@ -3,7 +3,7 @@ import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getDB } from '../../db';
 import AddMedicamentModal from '../../components/AddMedicamentModal';
 import EditMedicamentModal from '../../components/EditMedicamentModal';
-import MedicamentCard from '../../components/MedicamentCard';
+import EditableMedicamentCard from '../../components/EditableMedicamentCard';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
