@@ -65,7 +65,7 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
               <Dropdown.Menu>
                 <Dropdown.Item onClick={() => onEdit(medicamentId)}>Modifier</Dropdown.Item>
                 <Dropdown.Item onClick={() => setShowAdjustStockModal(true)}>Ajuster le stock</Dropdown.Item>
-                <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdownament.Item>
+                <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </div>
