@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getDB } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+import { addDocument, getCollection, updateDocument } from '../firebase/firestoreService';
 
 interface AddRetourModalProps {
   show: boolean;
@@ -11,16 +10,13 @@ interface AddRetourModalProps {
 
 const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess }) => {
   const [medicaments, setMedicaments] = useState<any[]>([]);
-  const [selectedMedicament, setSelectedMedicament] = useState<number | undefined>();
+  const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [quantite, setQuantite] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-      const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-      if (medicamentsResult.length > 0) {
-        setMedicaments(medicamentsResult[0].values);
-      }
+      const medicamentsData = await getCollection('liste_medicaments');
+      setMedicaments(medicamentsData);
     };
     if (show) {
       fetchData();
@@ -30,9 +26,20 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMedicament && quantite > 0) {
-      const db = await getDB();
-      const firestoreDocId = uuidv4();
-      await db.run("INSERT INTO retour (article_id, quantite, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)", [selectedMedicament, quantite, 'pending_create', firestoreDocId]);
+      // Add new retour entry
+      await addDocument('retour', {
+        article_id: selectedMedicament,
+        quantite: quantite,
+        date_enregistrement: new Date().toISOString(),
+        date_modification: new Date().toISOString(),
+      });
+
+      // Update medicament stock
+      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      if (medicament) {
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
+      }
+
       onSuccess();
       onHide();
     }
@@ -47,10 +54,10 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Médicament</Form.Label>
-            <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(Number(e.target.value))}>
-              <option>Sélectionner un médicament</option>
-              {medicaments.map((med, index) => (
-                <option key={index} value={med[0]}>{med[1]}</option>
+            <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(e.target.value)}>
+              <option value="">Sélectionner un médicament</option>
+              {medicaments.map((med) => (
+                <option key={med.id} value={med.id}>{med.nom}</option>
               ))}
             </Form.Select>
           </Form.Group>

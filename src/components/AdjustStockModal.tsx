@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { getDB } from '../db';
+import { addDocument, updateDocument } from '../firebase/firestoreService';
 import PinModal from './PinModal';
 
 interface AdjustStockModalProps {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  medicamentId: number | null;
+  medicamentId: string | null;
   currentStock: number;
 }
 
@@ -30,11 +30,17 @@ const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ show, onHide, onSuc
 
   const handleConfirm = async () => {
     if (medicamentId) {
-      const db = await getDB();
-      await db.run(
-        "INSERT INTO stock_adjustments (article_id, quantite_ajustee, raison, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)",
-        [medicamentId, adjustment, reason]
-      );
+      // Add new stock adjustment entry
+      await addDocument('stock_adjustments', {
+        article_id: medicamentId,
+        quantite_ajustee: adjustment,
+        raison: reason,
+        date_ajustement: new Date().toISOString(),
+      });
+
+      // Update medicament stock
+      await updateDocument('liste_medicaments', medicamentId, { quantite_en_stock: currentStock + adjustment });
+
       onSuccess();
       onHide();
     }

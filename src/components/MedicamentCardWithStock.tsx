@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
-import { calculateCurrentStock } from '../db';
+import { getDocument } from '../firebase/firestoreService';
 import AdjustStockModal from './AdjustStockModal';
 import './Card.css';
 
 interface MedicamentCardWithStockProps {
   medicament: any;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   onSuccess: () => void;
 }
 
 const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medicament, onEdit, onDelete, onSuccess }) => {
-  const [stock, setStock] = useState<number | string>('');
+  const [stock, setStock] = useState<number | string>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showAdjustStockModal, setShowAdjustStockModal] = useState(false);
 
-  const medicamentId = medicament[0];
-  const medicamentName = medicament[1];
-  const lot = medicament[6];
-  const expirationDate = medicament[7];
+  const medicamentId = medicament.id;
+  const medicamentName = medicament.nom;
+  const lot = medicament.lot;
+  const expirationDate = medicament.expiration_date;
 
   const fetchStock = async () => {
     setIsLoading(true);
     try {
-      const currentStock = await calculateCurrentStock(medicamentId);
-      setStock(currentStock);
+      const fetchedMedicament = await getDocument('liste_medicaments', medicamentId);
+      if (fetchedMedicament) {
+        setStock(fetchedMedicament.quantite_en_stock);
+      }
     } catch (error) {
       console.error("Failed to fetch stock for medicament:", medicamentId, error);
       setStock("Erreur"); // Display an error message
@@ -63,7 +65,7 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
               <Dropdown.Menu>
                 <Dropdown.Item onClick={() => onEdit(medicamentId)}>Modifier</Dropdown.Item>
                 <Dropdown.Item onClick={() => setShowAdjustStockModal(true)}>Ajuster le stock</Dropdown.Item>
-                <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdown.Item>
+                <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdownament.Item>
               </Dropdown.Menu>
             </Dropdown>
           </div>

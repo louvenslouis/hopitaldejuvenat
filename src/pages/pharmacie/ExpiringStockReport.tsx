@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection } from '../../firebase/firestoreService';
 
 const ExpiringStockReport: React.FC = () => {
   const [expiringStock, setExpiringStock] = useState<any[]>([]);
@@ -8,27 +8,15 @@ const ExpiringStockReport: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
+      const allMedicaments = await getCollection('liste_medicaments');
       const dateLimit = new Date();
       dateLimit.setDate(dateLimit.getDate() + days);
-      const dateLimitString = dateLimit.toISOString().split('T')[0];
 
-      const result = db.exec(`
-        SELECT 
-          lm.nom,
-          s.quantite,
-          s.date_expiration
-        FROM stock s
-        JOIN liste_medicaments lm ON s.article_id = lm.id
-        WHERE s.date_expiration IS NOT NULL AND s.date_expiration <= ?
-        ORDER BY s.date_expiration ASC
-      `, [dateLimitString]);
+      const filteredExpiringStock = allMedicaments.filter((med: any) => 
+        med.expiration_date && new Date(med.expiration_date) <= dateLimit
+      ).sort((a: any, b: any) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
 
-      if (result.length > 0) {
-        setExpiringStock(result[0].values);
-      } else {
-        setExpiringStock([]);
-      }
+      setExpiringStock(filteredExpiringStock);
     };
 
     fetchData();
@@ -56,10 +44,10 @@ const ExpiringStockReport: React.FC = () => {
         </thead>
         <tbody>
           {expiringStock.map((item, index) => (
-            <tr key={index}>
-              <td>{item[0]}</td>
-              <td>{item[1]}</td>
-              <td>{new Date(item[2]).toLocaleDateString('fr-HT')}</td>
+            <tr key={item.id}>
+              <td>{item.nom}</td>
+              <td>{item.quantite_en_stock}</td>
+              <td>{new Date(item.expiration_date).toLocaleDateString('fr-HT')}</td>
             </tr>
           ))}
         </tbody>

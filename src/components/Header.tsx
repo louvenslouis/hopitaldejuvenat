@@ -1,8 +1,7 @@
 import React from 'react';
-import { Dropdown, Button, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { Dropdown, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
-import { useSync } from '../contexts/SyncContext';
 
 interface HeaderProps {
   isSidebarCollapsed: boolean;
@@ -10,16 +9,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
   const { personnel, activeUser, setActiveUser } = useUser();
-  const { syncStatus, lastSyncTime } = useSync();
-
-  const renderSyncTooltip = (props: any) => (
-    <Tooltip id="sync-tooltip" {...props}>
-      {syncStatus === 'syncing' && 'Synchronisation en cours...'}
-      {syncStatus === 'synced' && `Dernière synchro: ${lastSyncTime?.toLocaleTimeString()}`}
-      {syncStatus === 'error' && 'Erreur de synchronisation'}
-      {syncStatus === 'idle' && 'En attente de synchronisation'}
-    </Tooltip>
-  );
 
   return (
     <header className={`app-header ${isSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -29,14 +18,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
         <h5 className="hospital-name">HOPITAL DE JUVENAT</h5>
       </div>
       <div className="header-right-section">
-        <OverlayTrigger placement="bottom" delay={{ show: 250, hide: 400 }} overlay={renderSyncTooltip}>
-          <div className={`sync-status-header ${syncStatus}`}>
-            {syncStatus === 'syncing' && <span className="material-icons spin">sync</span>}
-            {syncStatus === 'synced' && <span className="material-icons text-success">check_circle</span>}
-            {syncStatus === 'error' && <span className="material-icons text-danger">error</span>}
-            {syncStatus === 'idle' && <span className="material-icons">hourglass_empty</span>}
-          </div>
-        </OverlayTrigger>
         <div className="user-info">
           <Dropdown>
             <Dropdown.Toggle as={Button} variant="light" id="dropdown-basic">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddMedicamentModal from '../../components/AddMedicamentModal';
 import EditMedicamentModal from '../../components/EditMedicamentModal';
 import MedicamentCardWithStock from '../../components/MedicamentCardWithStock';
@@ -11,40 +11,29 @@ const Medicaments: React.FC = () => {
   const [medicaments, setMedicaments] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedMedicamentId, setSelectedMedicamentId] = useState<number | null>(null);
+  const [selectedMedicamentId, setSelectedMedicamentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
-    const db = await getDB();
-    let query = "SELECT id, nom, prix, type, presentation, quantite_en_stock, created_at, updated_at, firestore_doc_id, sync_status, last_modified_local FROM liste_medicaments";
-    const params: (string | number)[] = [];
-
-    if (searchTerm) {
-      query += " WHERE LOWER(nom) LIKE LOWER(?)";
-      params.push(`%${searchTerm}%`);
-    }
-
-    const result = db.exec(query, params);
-    if (result.length > 0) {
-      setMedicaments(result[0].values);
-    } else {
-      setMedicaments([]);
-    }
+    const allMedicaments = await getCollection('liste_medicaments');
+    const filteredMedicaments = allMedicaments.filter((m: any) => 
+      m.nom.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setMedicaments(filteredMedicaments);
   };
 
   useEffect(() => {
     fetchData();
   }, [searchTerm]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce médicament ?")) {
-      const db = await getDB();
-      await db.run("UPDATE liste_medicaments SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [id]);
+      await deleteDocument('liste_medicaments', id);
       fetchData();
     }
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     setSelectedMedicamentId(id);
     setShowEditModal(true);
   };
@@ -61,7 +50,7 @@ const Medicaments: React.FC = () => {
     const doc = new jsPDF();
     (doc as any).autoTable({
       head: [['Nom', 'Quantité en Stock']],
-      body: medicaments.map(m => [m[1], m[5]]),
+      body: medicaments.map(m => [m.nom, m.quantite_en_stock]),
     });
     doc.save('medicaments.pdf');
   };
@@ -88,8 +77,8 @@ const Medicaments: React.FC = () => {
         </InputGroup>
       </div>
       <div className="card-grid">
-        {medicaments.map((medicament, index) => (
-          <MedicamentCardWithStock key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} onSuccess={fetchData} />
+        {medicaments.map((medicament) => (
+          <MedicamentCardWithStock key={medicament.id} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} onSuccess={fetchData} />
         ))}
       </div>
       <AddMedicamentModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />

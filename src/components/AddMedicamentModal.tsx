@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { getDB } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+import { addDocument } from '../firebase/firestoreService';
 
 interface AddMedicamentModalProps {
   show: boolean;
@@ -31,21 +30,21 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const db = await getDB();
-    const firestoreDocId = uuidv4();
-    await db.run(
-      "INSERT INTO liste_medicaments (nom, prix, type, presentation, lot, expiration_date, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
-      [nom, prix, type, presentation, lot, expirationDate, 'pending_create', firestoreDocId]
-    );
-    if (initialStock > 0) {
-        const medicamentResult = await db.exec("SELECT last_insert_rowid()");
-        const medicamentId = medicamentResult[0].values[0][0] as number;
-        const reason = "Stock initial";
-        await db.run(
-            "INSERT INTO stock_adjustments (article_id, quantite_ajustee, raison, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)",
-            [medicamentId, initialStock, reason]
-        );
-    }
+    const newMedicament = {
+      nom,
+      prix,
+      type,
+      presentation,
+      lot,
+      expiration_date: expirationDate,
+      quantite_en_stock: initialStock, // Initial stock is directly set here
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const medicamentId = await addDocument('liste_medicaments', newMedicament);
+
+    // No need for stock_adjustments here, as initial stock is set directly
+
     onSuccess();
     onHide();
   };

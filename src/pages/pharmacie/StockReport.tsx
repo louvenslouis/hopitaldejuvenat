@@ -1,19 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection } from '../../firebase/firestoreService';
 
 const StockReport: React.FC = () => {
   const [stockData, setStockData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-      const result = db.exec("SELECT * FROM v_stock_actuel");
-      if (result.length > 0) {
-        setStockData(result[0].values);
-      } else {
-        setStockData([]);
-      }
+      const allMedicaments = await getCollection('liste_medicaments');
+      const allStockEntries = await getCollection('stock');
+      const allSortieDetails = await getCollection('sorties_details');
+      const allRetours = await getCollection('retour');
+      const allStockAdjustments = await getCollection('stock_adjustments');
+
+      const calculatedStockData = allMedicaments.map((medicament: any) => {
+        const totalEntrees = allStockEntries
+          .filter((entry: any) => entry.article_id === medicament.id)
+          .reduce((sum: number, entry: any) => sum + (entry.quantite || 0), 0);
+
+        const totalSorties = allSortieDetails
+          .filter((detail: any) => detail.article_id === medicament.id)
+          .reduce((sum: number, detail: any) => sum + (detail.quantite || 0), 0);
+
+        const totalRetours = allRetours
+          .filter((retour: any) => retour.article_id === medicament.id)
+          .reduce((sum: number, retour: any) => sum + (retour.quantite || 0), 0);
+
+        const totalAdjustments = allStockAdjustments
+          .filter((adjustment: any) => adjustment.article_id === medicament.id)
+          .reduce((sum: number, adjustment: any) => sum + (adjustment.quantite_ajustee || 0), 0);
+
+        const currentStock = totalEntrees - totalSorties + totalRetours + totalAdjustments;
+
+        return {
+          id: medicament.id,
+          nom: medicament.nom,
+          prix: medicament.prix,
+          type: medicament.type,
+          presentation: medicament.presentation,
+          totalEntrees: totalEntrees,
+          totalSorties: totalSorties,
+          totalRetours: totalRetours,
+          currentStock: currentStock,
+        };
+      });
+      setStockData(calculatedStockData);
     };
 
     fetchData();
@@ -38,16 +69,16 @@ const StockReport: React.FC = () => {
         </thead>
         <tbody>
           {stockData.map((item, index) => (
-            <tr key={index}>
-              <td>{item[0]}</td>
-              <td>{item[1]}</td>
-              <td>{item[2].toLocaleString('fr-HT', { style: 'currency', currency: 'HTG' })}</td>
-              <td>{item[3]}</td>
-              <td>{item[4]}</td>
-              <td>{item[5]}</td>
-              <td>{item[6]}</td>
-              <td>{item[7]}</td>
-              <td>{item[8]}</td>
+            <tr key={item.id}>
+              <td>{item.id}</td>
+              <td>{item.nom}</td>
+              <td>{item.prix.toLocaleString('fr-HT', { style: 'currency', currency: 'HTG' })}</td>
+              <td>{item.type}</td>
+              <td>{item.presentation}</td>
+              <td>{item.totalEntrees}</td>
+              <td>{item.totalSorties}</td>
+              <td>{item.totalRetours}</td>
+              <td>{item.currentStock}</td>
             </tr>
           ))}
         </tbody>

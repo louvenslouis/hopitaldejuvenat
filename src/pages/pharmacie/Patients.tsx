@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddPatientModal from '../../components/AddPatientModal';
 import EditPatientModal from '../../components/EditPatientModal';
 import PatientCard from '../../components/PatientCard';
@@ -9,40 +9,29 @@ const Patients: React.FC = () => {
   const [patients, setPatients] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
-    const db = await getDB();
-    let query = "SELECT id, prenom, nom, nif_cin, annee_naissance, sexe, telephone, sync_status FROM patient";
-    const params: (string | number)[] = [];
-
-    if (searchTerm) {
-      query += " WHERE prenom || ' ' || nom LIKE ?";
-      params.push(`%${searchTerm}%`);
-    }
-
-    const result = db.exec(query, params);
-    if (result.length > 0) {
-      setPatients(result[0].values);
-    } else {
-      setPatients([]);
-    }
+    const allPatients = await getCollection('patient');
+    const filteredPatients = allPatients.filter((p: any) => 
+      `${p.prenom} ${p.nom}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setPatients(filteredPatients);
   };
 
   useEffect(() => {
     fetchData();
   }, [searchTerm]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce patient ?")) {
-      const db = await getDB();
-      await db.run("UPDATE patient SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [id]);
+      await deleteDocument('patient', id);
       fetchData();
     }
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     setSelectedPatientId(id);
     setShowEditModal(true);
   };
@@ -74,8 +63,8 @@ const Patients: React.FC = () => {
         </InputGroup>
       </div>
       <div className="card-grid">
-        {patients.map((patient, index) => (
-          <PatientCard key={index} patient={patient} onEdit={handleEdit} onDelete={handleDelete} />
+        {patients.map((patient) => (
+          <PatientCard key={patient.id} patient={patient} onEdit={handleEdit} onDelete={handleDelete} />
         ))}
       </div>
       <AddPatientModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />

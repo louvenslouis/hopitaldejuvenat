@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection } from '../../firebase/firestoreService';
 
 const DailySalesReport: React.FC = () => {
   const [dailySales, setDailySales] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-      const result = db.exec(`
-        SELECT
-          s.date_sortie,
-          SUM(sd.quantite * lm.prix) AS total_vente
-        FROM sorties s
-        JOIN sorties_details sd ON s.id = sd.sortie_id
-        JOIN liste_medicaments lm ON sd.article_id = lm.id
-        GROUP BY s.date_sortie
-        ORDER BY s.date_sortie DESC
-      `);
-      if (result.length > 0) {
-        setDailySales(result[0].values);
-      } else {
-        setDailySales([]);
-      }
+      const allSorties = await getCollection('sorties');
+      const allMedicaments = await getCollection('liste_medicaments');
+
+      const salesByDate: { [key: string]: number } = {};
+
+      allSorties.forEach((sortie: any) => {
+        const date = new Date(sortie.date_sortie).toISOString().split('T')[0];
+        sortie.articles.forEach((article: any) => {
+          const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+          if (medicament) {
+            salesByDate[date] = (salesByDate[date] || 0) + (article.quantite * medicament.prix);
+          }
+        });
+      });
+
+      const sortedSales = Object.entries(salesByDate)
+        .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
+        .map(([date, total_vente]) => ({ date, total_vente }));
+
+      setDailySales(sortedSales);
     };
 
     fetchData();
@@ -41,8 +45,8 @@ const DailySalesReport: React.FC = () => {
         <tbody>
           {dailySales.map((sale, index) => (
             <tr key={index}>
-              <td>{sale[0]}</td>
-              <td>{sale[1].toLocaleString('fr-HT', { style: 'currency', currency: 'HTG' })}</td>
+              <td>{sale.date}</td>
+              <td>{sale.total_vente.toLocaleString('fr-HT', { style: 'currency', currency: 'HTG' })}</td>
             </tr>
           ))}
         </tbody>

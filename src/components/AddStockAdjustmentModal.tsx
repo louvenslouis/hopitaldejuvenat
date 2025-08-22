@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, ListGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+import { addDocument, getCollection, updateDocument } from '../firebase/firestoreService';
 
 interface AddStockAdjustmentModalProps {
   show: boolean;
@@ -11,7 +10,7 @@ interface AddStockAdjustmentModalProps {
 
 const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show, onHide, onSuccess }) => {
   const [medicaments, setMedicaments] = useState<any[]>([]);
-  const [selectedMedicament, setSelectedMedicament] = useState<number | undefined>();
+  const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
   const [quantiteAjustee, setQuantiteAjustee] = useState<number>(0);
@@ -27,11 +26,8 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-      const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-      if (medicamentsResult.length > 0) {
-        setMedicaments(medicamentsResult[0].values);
-      }
+      const medicamentsData = await getCollection('liste_medicaments');
+      setMedicaments(medicamentsData);
     };
     if (show) {
       fetchData();
@@ -39,17 +35,28 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
   }, [show]);
 
   const handleMedicamentSelect = (medicament: any) => {
-    setSelectedMedicament(medicament[0]);
-    setMedicamentSearchTerm(medicament[1]);
+    setSelectedMedicament(medicament.id);
+    setMedicamentSearchTerm(medicament.nom);
     setShowMedicamentResults(false);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMedicament && quantiteAjustee !== 0) {
-      const db = await getDB();
-      const firestoreDocId = uuidv4();
-      await db.run("INSERT INTO stock_adjustments (article_id, quantite_ajustee, raison, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)", [selectedMedicament, quantiteAjustee, raison, 'pending_create', firestoreDocId]);
+      // Add new stock adjustment entry
+      await addDocument('stock_adjustments', {
+        article_id: selectedMedicament,
+        quantite_ajustee: quantiteAjustee,
+        raison: raison,
+        date_ajustement: new Date().toISOString(),
+      });
+
+      // Update medicament stock
+      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      if (medicament) {
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantiteAjustee });
+      }
+
       onSuccess();
       onHide();
     }
@@ -73,10 +80,10 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
             {showMedicamentResults && medicamentSearchTerm && (
               <ListGroup>
                 {medicaments
-                  .filter(m => m[1].toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
+                  .filter(m => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
                   .map((m, i) => (
-                    <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(m)}>
-                      {m[1]}
+                    <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(m)}>
+                      {m.nom}
                     </ListGroup.Item>
                   ))}
               </ListGroup>

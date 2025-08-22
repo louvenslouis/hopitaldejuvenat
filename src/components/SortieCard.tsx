@@ -1,57 +1,43 @@
-
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import './Card.css';
 
 interface SortieCardProps {
   sortie: any;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 const SortieCard: React.FC<SortieCardProps> = ({ sortie, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const sortieId = sortie[0];
-  const dateSortie = sortie[1];
-  const service = sortie[2];
-  const employe = sortie[3];
-  const patientNom = sortie[4] ? `${sortie[4]}` : 'N/A'; // Assuming patient name is at index 4
-  const syncStatus = sortie[6];
 
   return (
     <div className="custom-card">
       <div className="card-body-line" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="card-info">
           <span className="material-icons">person</span>
-          <span>{patientNom}</span>
+          <span>{sortie.patient_nom}</span>
         </div>
         <div className="card-info">
             <span className="material-icons">event</span>
-            <span>{new Date(dateSortie).toLocaleString('fr-HT')}</span>
+            <span>{new Date(sortie.date_sortie).toLocaleString('fr-HT')}</span>
         </div>
         <Dropdown onClick={(e) => e.stopPropagation()}>
           <Dropdown.Toggle as={Button} variant="link">
             <span className="material-icons">more_vert</span>
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onDelete(sortieId)}>Supprimer</Dropdown.Item>
+            <Dropdown.Item onClick={() => onDelete(sortie.id)}>Supprimer</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>
       {isExpanded && (
         <div className="expanded-info">
           <hr />
-          <p><span className="material-icons">local_hospital</span> Service: {service}</p>
-          <p><span className="material-icons">badge</span> Employé: {employe}</p>
-          <p><span className="material-icons">king_bed</span> Chambre: {sortie[5]}</p>
-          <p><span className="material-icons">note</span> Memo: {sortie[8]}</p>
-          <p><span className="material-icons">medication</span> Médicaments: {sortie[7]}</p>
-          <p>
-              Statut Sync: {syncStatus === 'synced' && <span title="Synchronisé">✅</span>}
-              {syncStatus === 'pending_create' && <span title="En attente de création">⬆️</span>}
-              {syncStatus === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-              {syncStatus === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
-          </p>
+          <p><span className="material-icons">local_hospital</span> Service: {sortie.service}</p>
+          <p><span className="material-icons">badge</span> Employé: {sortie.employe}</p>
+          <p><span className="material-icons">king_bed</span> Chambre: {sortie.chambre}</p>
+          <p><span className="material-icons">note</span> Memo: {sortie.memo}</p>
+          <p><span className="material-icons">medication</span> Médicaments: {sortie.articles_summary}</p>
         </div>
       )}
     </div>

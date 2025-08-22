@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getDB } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+import { addDocument } from '../firebase/firestoreService';
 
 interface AddPatientModalProps {
   show: boolean;
@@ -19,9 +18,17 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const db = await getDB();
-    const firestoreDocId = uuidv4();
-    await db.run("INSERT INTO patient (prenom, nom, nif_cin, annee_naissance, sexe, telephone, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)", [prenom, nom, nifCin, anneeNaissance ?? null, sexe, telephone ?? null, 'pending_create', firestoreDocId]);
+    const newPatient = {
+      prenom,
+      nom,
+      nif_cin: nifCin,
+      annee_naissance: anneeNaissance || null,
+      sexe,
+      telephone: telephone || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    await addDocument('patient', newPatient);
     onSuccess();
     onHide();
   };

@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
-import { getDB } from '../db';
+import { getCollection } from '../firebase/firestoreService';
 
 interface User {
-  id: number;
+  id: string;
   nom: string;
 }
 
@@ -20,15 +20,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const fetchPersonnel = async () => {
-      const db = await getDB();
-      const result = db.exec("SELECT id, nom FROM personnel");
-      if (result.length > 0) {
-        const users = result[0].values.map((v: any[]) => ({ id: v[0] as number, nom: v[1] as string }));
-        setPersonnel(users);
-        if (!activeUser && users.length > 0) {
-          // Set a default active user
-          setActiveUser(users[0]);
-        }
+      const users = await getCollection('personnel');
+      setPersonnel(users as User[]);
+      if (!activeUser && users.length > 0) {
+        // Set a default active user
+        setActiveUser(users[0] as User);
       }
     };
     fetchPersonnel();

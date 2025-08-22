@@ -4,8 +4,8 @@ import './Card.css';
 
 interface PatientCardProps {
   patient: any;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit, onDelete }) => {
@@ -16,26 +16,26 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit, onDelete }) 
       <div className="card-body-line">
         <div className="card-info">
           <span className="material-icons">person</span>
-          <span>{patient[1]} {patient[2]}</span>
+          <span>{patient.prenom} {patient.nom}</span>
           <span className="material-icons">cake</span>
-          <span>{patient[4]}</span>
+          <span>{patient.annee_naissance}</span>
         </div>
         <Dropdown onClick={(e) => e.stopPropagation()}>
-          <Dropdown.Toggle as={Button} variant="link" id={`dropdown-patient-${patient[0]}`}>
+          <Dropdown.Toggle as={Button} variant="link" id={`dropdown-patient-${patient.id}`}>
             <span className="material-icons">more_vert</span>
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onEdit(patient[0])}>Modifier</Dropdown.Item>
-            <Dropdown.Item onClick={() => onDelete(patient[0])}>Supprimer</Dropdown.Item>
+            <Dropdown.Item onClick={() => onEdit(patient.id)}>Modifier</Dropdown.Item>
+            <Dropdown.Item onClick={() => onDelete(patient.id)}>Supprimer</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>
       {isExpanded && (
         <div className="expanded-info">
           <hr />
-          <p><span className="material-icons">fingerprint</span> NIF/CIN: {patient[3]}</p>
-          <p><span className="material-icons">wc</span> Sexe: {patient[5]}</p>
-          <p><span className="material-icons">phone</span> Téléphone: {patient[6] ? patient[6].toString().replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4') : 'N/A'}</p>
+          <p><span className="material-icons">fingerprint</span> NIF/CIN: {patient.nif_cin}</p>
+          <p><span className="material-icons">wc</span> Sexe: {patient.sexe}</p>
+          <p><span className="material-icons">phone</span> Téléphone: {patient.telephone ? patient.telephone.toString().replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4') : 'N/A'}</p>
         </div>
       )}
     </div>

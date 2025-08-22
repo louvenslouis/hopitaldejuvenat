@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getDocument, updateDocument } from '../firebase/firestoreService';
 
 interface EditPatientModalProps {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  patientId: number | null;
+  patientId: string | null;
 }
 
 const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuccess, patientId }) => {
@@ -20,16 +20,14 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
   useEffect(() => {
     if (patientId) {
       const fetchPatient = async () => {
-        const db = await getDB();
-        const result = db.exec("SELECT * FROM patient WHERE id = ?", [patientId]);
-        if (result.length > 0 && result[0].values.length > 0) {
-          const patient = result[0].values[0];
-          setPrenom(patient[1] as string);
-          setNom(patient[2] as string);
-          setNifCin(patient[3] as string);
-          setAnneeNaissance(patient[4] as number);
-          setSexe(patient[5] as string);
-          setTelephone(patient[6] as number);
+        const patient = await getDocument('patient', patientId);
+        if (patient) {
+          setPrenom(patient.prenom);
+          setNom(patient.nom);
+          setNifCin(patient.nif_cin);
+          setAnneeNaissance(patient.annee_naissance);
+          setSexe(patient.sexe);
+          setTelephone(patient.telephone);
         }
       };
       fetchPatient();
@@ -38,10 +36,20 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const db = await getDB();
-    await db.run("UPDATE patient SET prenom = ?, nom = ?, nif_cin = ?, annee_naissance = ?, sexe = ?, telephone = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [prenom, nom, nifCin, anneeNaissance ?? null, sexe, telephone ?? null, patientId]);
-    onSuccess();
-    onHide();
+    if (patientId) {
+      const updatedPatient = {
+        prenom,
+        nom,
+        nif_cin: nifCin,
+        annee_naissance: anneeNaissance || null,
+        sexe,
+        telephone: telephone || null,
+        updated_at: new Date().toISOString(),
+      };
+      await updateDocument('patient', patientId, updatedPatient);
+      onSuccess();
+      onHide();
+    }
   };
 
   return (

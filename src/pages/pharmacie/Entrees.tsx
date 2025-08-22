@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection, addDocument, updateDocument } from '../../firebase/firestoreService';
 import EntreeCard from '../../components/EntreeCard';
 
 const Entrees: React.FC = () => {
   const [entrees, setEntrees] = useState<any[]>([]);
   const [medicaments, setMedicaments] = useState<any[]>([]);
-  const [selectedMedicament, setSelectedMedicament] = useState<number | undefined>();
+  const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
   const [quantite, setQuantite] = useState<number>(0);
   const [dateExpiration, setDateExpiration] = useState('');
 
   const fetchData = async () => {
-    const db = await getDB();
-    const query = "SELECT stock.id, stock.quantite, stock.date_enregistrement, liste_medicaments.nom, stock.sync_status, stock.date_expiration FROM stock JOIN liste_medicaments ON stock.article_id = liste_medicaments.id ORDER BY stock.date_enregistrement DESC";
-    
-    const entreesResult = db.exec(query);
-    if (entreesResult.length > 0) {
-      setEntrees(entreesResult[0].values);
-    } else {
-      setEntrees([]);
-    }
+    const allEntrees = await getCollection('stock');
+    const allMedicaments = await getCollection('liste_medicaments');
 
-    const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-    if (medicamentsResult.length > 0) {
-      setMedicaments(medicamentsResult[0].values);
-    }
+    const enrichedEntrees = allEntrees.map((entree: any) => {
+      const medicament = allMedicaments.find((med: any) => med.id === entree.article_id);
+      return { ...entree, nom: medicament ? medicament.nom : 'Inconnu' };
+    });
+    setEntrees(enrichedEntrees.sort((a: any, b: any) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
+
+    setMedicaments(allMedicaments);
   };
 
   useEffect(() => {
@@ -34,16 +30,29 @@ const Entrees: React.FC = () => {
   }, []);
 
   const handleMedicamentSelect = (medicament: any) => {
-    setSelectedMedicament(medicament[0]);
-    setMedicamentSearchTerm(medicament[1]);
+    setSelectedMedicament(medicament.id);
+    setMedicamentSearchTerm(medicament.nom);
     setShowMedicamentResults(false);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedMedicament && quantite > 0) { // Date d'expiration optionnelle
-      const db = await getDB();
-      await db.run("INSERT INTO stock (article_id, quantite, date_expiration, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)", [selectedMedicament, quantite, dateExpiration || null]);
+    if (selectedMedicament && quantite > 0) { 
+      // Add new stock entry
+      await addDocument('stock', {
+        article_id: selectedMedicament,
+        quantite: quantite,
+        date_expiration: dateExpiration || null,
+        date_enregistrement: new Date().toISOString(),
+        date_modification: new Date().toISOString(),
+      });
+
+      // Update medicament stock
+      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      if (medicament) {
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
+      }
+
       fetchData();
       setSelectedMedicament(undefined);
       setMedicamentSearchTerm('');
@@ -70,10 +79,10 @@ const Entrees: React.FC = () => {
               {showMedicamentResults && medicamentSearchTerm && (
                 <ListGroup>
                   {medicaments
-                    .filter(m => m[1].toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
+                    .filter(m => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
                     .map((m, i) => (
-                      <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(m)}>
-                        {m[1]}
+                      <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(m)}>
+                        {m.nom}
                       </ListGroup.Item>
                     ))}
                 </ListGroup>
@@ -99,8 +108,8 @@ const Entrees: React.FC = () => {
       </Form>
 
       <div className="card-grid">
-        {entrees.map((entree, index) => (
-          <EntreeCard key={index} entree={entree} />
+        {entrees.map((entree: any) => (
+          <EntreeCard key={entree.id} entree={entree} />
         ))}
       </div>
     </div>

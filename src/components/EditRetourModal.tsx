@@ -1,33 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { getDB } from '../db';
+import { getCollection, getDocument, updateDocument } from '../firebase/firestoreService';
 
 interface EditRetourModalProps {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  retourId: number | null;
+  retourId: string | null;
 }
 
 const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSuccess, retourId }) => {
   const [medicaments, setMedicaments] = useState<any[]>([]);
-  const [selectedMedicament, setSelectedMedicament] = useState<number | undefined>();
+  const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [quantite, setQuantite] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-      const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-      if (medicamentsResult.length > 0) {
-        setMedicaments(medicamentsResult[0].values);
-      }
+      const medicamentsData = await getCollection('liste_medicaments');
+      setMedicaments(medicamentsData);
 
       if (retourId) {
-        const retourResult = db.exec("SELECT article_id, quantite FROM retour WHERE id = ?", [retourId]);
-        if (retourResult.length > 0 && retourResult[0].values.length > 0) {
-          const retour = retourResult[0].values[0];
-          setSelectedMedicament(retour[0] as number);
-          setQuantite(retour[1] as number);
+        const retour = await getDocument('retour', retourId);
+        if (retour) {
+          setSelectedMedicament(retour.article_id);
+          setQuantite(retour.quantite);
         }
       }
     };
@@ -39,8 +35,28 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedMedicament && quantite > 0 && retourId) {
-      const db = await getDB();
-      await db.run("UPDATE retour SET article_id = ?, quantite = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [selectedMedicament, quantite, retourId]);
+      // Update medicament stock (revert old quantity, add new quantity)
+      const oldRetour = await getDocument('retour', retourId);
+      if (oldRetour) {
+        const oldMedicament = medicaments.find(m => m.id === oldRetour.article_id);
+        if (oldMedicament) {
+          await updateDocument('liste_medicaments', oldMedicament.id, { quantite_en_stock: oldMedicament.quantite_en_stock - oldRetour.quantite });
+        }
+      }
+
+      // Update retour entry
+      await updateDocument('retour', retourId, {
+        article_id: selectedMedicament,
+        quantite: quantite,
+        date_modification: new Date().toISOString(),
+      });
+
+      // Update medicament stock (add new quantity)
+      const newMedicament = medicaments.find(m => m.id === selectedMedicament);
+      if (newMedicament) {
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: newMedicament.quantite_en_stock + quantite });
+      }
+
       onSuccess();
       onHide();
     }
@@ -55,10 +71,10 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Médicament</Form.Label>
-            <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(Number(e.target.value))}>
-              <option>Sélectionner un médicament</option>
-              {medicaments.map((med, index) => (
-                <option key={index} value={med[0]}>{med[1]}</option>
+            <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(e.target.value)}>
+              <option value="">Sélectionner un médicament</option>
+              {medicaments.map((med) => (
+                <option key={med.id} value={med.id}>{med.nom}</option>
               ))}
             </Form.Select>
           </Form.Group>

@@ -13,13 +13,11 @@ import StockReport from './pages/pharmacie/StockReport';
 import DailySalesReport from './pages/pharmacie/DailySalesReport';
 import ExpiringStockReport from './pages/pharmacie/ExpiringStockReport';
 import SettingsPage from './pages/SettingsPage';
-import { useSync } from './contexts/SyncContext';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 768);
-  const { runSync } = useSync();
   const { theme } = useTheme();
 
   const handleResize = () => {
@@ -34,22 +32,6 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useEffect(() => {
-    // Run sync on initial load
-    runSync();
-
-    // Set up periodic sync every 5 minutes
-    const intervalId = setInterval(runSync, 5 * 60 * 1000);
-
-    // Set up online/offline event listeners
-    window.addEventListener('online', runSync);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('online', runSync);
-    };
-  }, [runSync]);
 
   return (
     <Router>

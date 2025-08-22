@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
-import { getDB } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+import { addDocument, getCollection, getDocument, updateDocument } from '../firebase/firestoreService';
 import AddPatientModal from './AddPatientModal';
 import AddMedicamentModal from './AddMedicamentModal';
 import { useUser } from '../contexts/UserContext';
@@ -16,7 +14,7 @@ interface AddSortieModalProps {
 const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess }) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [medicaments, setMedicaments] = useState<any[]>([]);
-  const [selectedPatient, setSelectedPatient] = useState<number | undefined>();
+  const [selectedPatient, setSelectedPatient] = useState<string | undefined>();
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [showPatientResults, setShowPatientResults] = useState(false);
   const [service, setService] = useState(''); // Initial state empty
@@ -43,15 +41,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   };
 
   const fetchData = async () => {
-    const db = await getDB();
-    const patientsResult = db.exec("SELECT id, prenom, nom FROM patient");
-    if (patientsResult.length > 0) {
-      setPatients(patientsResult[0].values);
-    }
-    const medicamentsResult = db.exec("SELECT id, nom FROM liste_medicaments");
-    if (medicamentsResult.length > 0) {
-      setMedicaments(medicamentsResult[0].values);
-    }
+    const patientsData = await getCollection('patient');
+    setPatients(patientsData);
+    const medicamentsData = await getCollection('liste_medicaments');
+    setMedicaments(medicamentsData);
   };
 
   useEffect(() => {
@@ -73,15 +66,15 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
   const handleMedicamentSelect = (index: number, medicament: any) => {
     const newArticles = [...articles];
-    newArticles[index]['article_id'] = medicament[0];
-    newArticles[index]['searchTerm'] = medicament[1];
+    newArticles[index]['article_id'] = medicament.id;
+    newArticles[index]['searchTerm'] = medicament.nom;
     newArticles[index]['showResults'] = false;
     setArticles(newArticles);
   }
 
   const handlePatientSelect = (patient: any) => {
-    setSelectedPatient(patient[0]);
-    setPatientSearchTerm(`${patient[1]} ${patient[2]}`);
+    setSelectedPatient(patient.id);
+    setPatientSearchTerm(`${patient.prenom} ${patient.nom}`);
     setShowPatientResults(false);
   }
 
@@ -114,34 +107,35 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
       return;
     }
 
-    const db = await getDB();
-
-    // Perform stock check
+    // Perform stock check and update
     for (const article of validArticles) {
-      const stockResult = db.exec(`SELECT quantite_en_stock FROM liste_medicaments WHERE id = ?`, [article.article_id]);
-      const currentStock = stockResult[0]?.values[0][0] || 0;
-      const medicamentNameResult = db.exec(`SELECT nom FROM liste_medicaments WHERE id = ?`, [article.article_id]);
-      const medicamentName = medicamentNameResult[0]?.values[0][0] || 'Unknown';
-
-      if (currentStock < article.quantite) {
-        setStockError(`Stock insuffisant pour ${medicamentName}. Stock actuel: ${currentStock}, Quantité demandée: ${article.quantite}`);
+      const medicament = await getDocument('liste_medicaments', article.article_id);
+      if (!medicament) {
+        setStockError(`Médicament ${article.searchTerm} introuvable.`);
         return;
       }
+      const currentStock = medicament.quantite_en_stock || 0;
+
+      if (currentStock < article.quantite) {
+        setStockError(`Stock insuffisant pour ${medicament.nom}. Stock actuel: ${currentStock}, Quantité demandée: ${article.quantite}`);
+        return;
+      }
+      // Update stock in Firestore
+      await updateDocument('liste_medicaments', article.article_id, { quantite_en_stock: currentStock - article.quantite });
     }
 
-    await db.transaction(async (tx) => {
-      const sortieFirestoreDocId = uuidv4();
-      const sortieResult = tx.prepare("INSERT INTO sorties (date_sortie, service, employe, patient_id, chambre, memo, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
-      sortieResult.run([new Date().toISOString(), service, employe, selectedPatient ?? null, chambre ?? null, memo, 'pending_create', sortieFirestoreDocId]);
-      const sortieId = tx.exec("SELECT last_insert_rowid()")[0].values[0][0] as number;
-      
-      const detailStmt = tx.prepare("INSERT INTO sorties_details (sortie_id, article_id, quantite, position_article, sync_status, last_modified_local, firestore_doc_id) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)");
-      validArticles.forEach((article, index) => {
-        const detailFirestoreDocId = uuidv4();
-        detailStmt.run([sortieId, article.article_id, article.quantite, index + 1, 'pending_create', detailFirestoreDocId]);
-      });
-      detailStmt.free();
-    });
+    const newSortie = {
+      date_sortie: new Date().toISOString(),
+      service,
+      employe,
+      patient_id: selectedPatient || null,
+      chambre: chambre || null,
+      memo,
+      articles: validArticles.map(art => ({ article_id: art.article_id, quantite: art.quantite })),
+      created_at: new Date().toISOString(),
+    };
+    await addDocument('sorties', newSortie);
+
     onSuccess();
     onHide();
   };
@@ -170,10 +164,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                   {showPatientResults && patientSearchTerm && (
                     <ListGroup>
                       {patients
-                        .filter(p => `${p[1]} ${p[2]}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
+                        .filter(p => `${p.prenom} ${p.nom}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
                         .map((p, i) => (
-                          <ListGroup.Item key={i} onClick={() => handlePatientSelect(p)}>
-                            {p[1]} {p[2]}
+                          <ListGroup.Item key={p.id} onClick={() => handlePatientSelect(p)}>
+                            {p.prenom} {p.nom}
                           </ListGroup.Item>
                         ))}
                     </ListGroup>
@@ -237,10 +231,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                   {article.showResults && article.searchTerm && (
                     <ListGroup>
                       {medicaments
-                        .filter(m => m[1].toLowerCase().includes(article.searchTerm.toLowerCase()))
+                        .filter(m => m.nom.toLowerCase().includes(article.searchTerm.toLowerCase()))
                         .map((m, i) => (
-                          <ListGroup.Item key={i} onClick={() => handleMedicamentSelect(index, m)}>
-                            {m[1]}
+                          <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(index, m)}>
+                            {m.nom}
                           </ListGroup.Item>
                         ))}
                     </ListGroup>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Alert } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection } from '../../firebase/firestoreService';
 import KpiCard from '../../components/dashboard/KpiCard';
 import TopSoldMedicamentsChart from '../../components/dashboard/TopSoldMedicamentsChart';
 import SortiesPerDayChart from '../../components/dashboard/SortiesPerDayChart';
@@ -16,70 +16,67 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const db = await getDB();
-
       // Expiring soon (in the next 30 days)
+      const allMedicaments = await getCollection('liste_medicaments');
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      const expiringSoonResult = db.exec("SELECT nom, expiration_date FROM liste_medicaments WHERE expiration_date <= ? ORDER BY expiration_date ASC", [thirtyDaysFromNow.toISOString()]);
-      if (expiringSoonResult.length > 0) {
-        setExpiringSoon(expiringSoonResult[0].values);
-      }
+      setExpiringSoon(allMedicaments.filter((med: any) => med.expiration_date && new Date(med.expiration_date) <= thirtyDaysFromNow));
 
       // Out of stock
-      const outOfStockResult = db.exec("SELECT nom FROM liste_medicaments WHERE quantite_en_stock <= 0");
-      if (outOfStockResult.length > 0) {
-        setOutOfStock(outOfStockResult[0].values);
-      }
+      setOutOfStock(allMedicaments.filter((med: any) => med.quantite_en_stock <= 0));
 
       // Low stock (< 10)
-      const lowStockResult = db.exec("SELECT nom, quantite_en_stock FROM liste_medicaments WHERE quantite_en_stock > 0 AND quantite_en_stock < 10 ORDER BY quantite_en_stock ASC");
-      if (lowStockResult.length > 0) {
-        setLowStock(lowStockResult[0].values);
-      }
+      setLowStock(allMedicaments.filter((med: any) => med.quantite_en_stock > 0 && med.quantite_en_stock < 10));
 
       // Top 5 sold medicaments in the last 30 days
+      const allSorties = await getCollection('sorties');
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const topSoldResult = db.exec(`
-        SELECT lm.nom, SUM(sd.quantite) as total_quantity
-        FROM sorties_details sd
-        JOIN liste_medicaments lm ON sd.article_id = lm.id
-        JOIN sorties s ON sd.sortie_id = s.id
-        WHERE s.date_sortie >= ?
-        GROUP BY lm.nom
-        ORDER BY total_quantity DESC
-        LIMIT 5
-      `, [thirtyDaysAgo.toISOString()]);
-      if (topSoldResult.length > 0) {
-        setTopSold(topSoldResult[0].values.map((row: any) => ({ name: row[0], quantity: row[1] })));
-      }
+
+      const salesData: { [key: string]: number } = {};
+      allSorties.forEach((sortie: any) => {
+        if (new Date(sortie.date_sortie) >= thirtyDaysAgo) {
+          sortie.articles.forEach((article: any) => {
+            const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+            if (medicament) {
+              salesData[medicament.nom] = (salesData[medicament.nom] || 0) + article.quantite;
+            }
+          });
+        }
+      });
+      const sortedSales = Object.entries(salesData)
+        .sort(([, quantityA], [, quantityB]) => (quantityB as number) - (quantityA as number))
+        .slice(0, 5)
+        .map(([name, quantity]) => ({ name, quantity }));
+      setTopSold(sortedSales);
 
       // Sorties per day for the last 7 days
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const sortiesPerDayResult = db.exec(`
-        SELECT date(date_sortie) as date, COUNT(*) as count
-        FROM sorties
-        WHERE date(date_sortie) >= date(?)
-        GROUP BY date(date_sortie)
-        ORDER BY date(date_sortie) ASC
-      `, [sevenDaysAgo.toISOString()]);
-      if (sortiesPerDayResult.length > 0) {
-        setSortiesPerDay(sortiesPerDayResult[0].values.map((row: any) => ({ date: row[0], count: row[1] })));
-      }
+      const dailySorties: { [key: string]: number } = {};
+      allSorties.forEach((sortie: any) => {
+        const date = new Date(sortie.date_sortie).toISOString().split('T')[0];
+        if (new Date(date) >= sevenDaysAgo) {
+          dailySorties[date] = (dailySorties[date] || 0) + 1;
+        }
+      });
+      const sortedDailySorties = Object.entries(dailySorties)
+        .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+        .map(([date, count]) => ({ date, count }));
+      setSortiesPerDay(sortedDailySorties);
 
       // Recent 5 sorties
-      const recentSortiesResult = db.exec(`
-        SELECT s.date_sortie, s.service, s.employe, p.nom as patient_nom
-        FROM sorties s
-        LEFT JOIN patient p ON s.patient_id = p.id
-        ORDER BY s.date_sortie DESC
-        LIMIT 5
-      `);
-      if (recentSortiesResult.length > 0) {
-        setRecentSorties(recentSortiesResult[0].values.map((row: any) => ({ date_sortie: row[0], service: row[1], employe: row[2], patient_nom: row[3] })));
-      }
+      const allPatients = await getCollection('patient');
+      const recentSortiesData = allSorties
+        .sort((a: any, b: any) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime())
+        .slice(0, 5)
+        .map((sortie: any) => ({
+          date_sortie: sortie.date_sortie,
+          service: sortie.service,
+          employe: sortie.employe,
+          patient_nom: allPatients.find((p: any) => p.id === sortie.patient_id)?.nom || 'N/A',
+        }));
+      setRecentSorties(recentSortiesData);
     };
 
     fetchData();
@@ -113,7 +110,7 @@ const Dashboard: React.FC = () => {
           <h5>⚠️ Médicaments à faible stock:</h5>
           <ul>
             {lowStock.map((med, index) => (
-              <li key={index}>{med[0]} (Stock: {med[1]})</li>
+              <li key={index}>{med.nom} (Stock: {med.quantite_en_stock})</li>
             ))}
           </ul>
         </Alert>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
-import { getDB } from '../../db';
+import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddSortieModal from '../../components/AddSortieModal';
 import SortieCard from '../../components/SortieCard';
 
@@ -10,59 +10,47 @@ const Sorties: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
-    const db = await getDB();
-    let query = `
-      SELECT 
-        s.id,
-        s.date_sortie,
-        s.service,
-        s.employe,
-        p.prenom || ' ' || p.nom as patient_nom,
-        s.chambre,
-        s.sync_status,
-        GROUP_CONCAT(sd.quantite || ' ' || lm.nom, ', '),
-        s.memo
-      FROM sorties s
-      LEFT JOIN patient p ON s.patient_id = p.id
-      LEFT JOIN sorties_details sd ON s.id = sd.sortie_id
-      LEFT JOIN liste_medicaments lm ON sd.article_id = lm.id
-    `;
-    const params: (string | number)[] = [];
+    const allSorties = await getCollection('sorties');
+    const allPatients = await getCollection('patient');
+    const allMedicaments = await getCollection('liste_medicaments');
 
-    if (searchTerm) {
-      query += `
-        WHERE LOWER(p.prenom || ' ' || p.nom) LIKE LOWER(?)
-        OR LOWER(s.service) LIKE LOWER(?)
-        OR LOWER(s.employe) LIKE LOWER(?)
-      `;
-      const searchTermLike = `%${searchTerm}%`;
-      params.push(searchTermLike, searchTermLike, searchTermLike);
-    }
+    const enrichedSorties = allSorties.map((sortie: any) => {
+      const patient = allPatients.find((p: any) => p.id === sortie.patient_id);
+      const patient_nom = patient ? `${patient.prenom} ${patient.nom}` : 'N/A';
 
-    query += `
-      GROUP BY s.id
-      ORDER BY s.date_sortie DESC
-    `;
+      const articlesDetails = sortie.articles.map((article: any) => {
+        const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
+        return `${article.quantite} ${medicament ? medicament.nom : 'Inconnu'}`;
+      }).join(', ');
 
-    const result = db.exec(query, params);
-    if (result.length > 0) {
-      setSorties(result[0].values);
-    } else {
-      setSorties([]);
-    }
+      return {
+        id: sortie.id,
+        date_sortie: sortie.date_sortie,
+        service: sortie.service,
+        employe: sortie.employe,
+        patient_nom: patient_nom,
+        chambre: sortie.chambre,
+        memo: sortie.memo,
+        articles_summary: articlesDetails,
+      };
+    });
+
+    const filteredSorties = enrichedSorties.filter((s: any) => 
+      s.patient_nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.employe.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    setSorties(filteredSorties.sort((a: any, b: any) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime()));
   };
 
   useEffect(() => {
     fetchData();
   }, [searchTerm]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette sortie ?')) {
-      const db = await getDB();
-      await db.transaction(async (tx) => {
-        tx.run("UPDATE sorties SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?", [id]);
-        tx.run("UPDATE sorties_details SET sync_status = 'pending_delete', last_modified_local = CURRENT_TIMESTAMP WHERE sortie_id = ?", [id]);
-      });
+      await deleteDocument('sorties', id);
       fetchData();
     }
   };
@@ -94,8 +82,8 @@ const Sorties: React.FC = () => {
         </InputGroup>
       </div>
       <div className="card-grid">
-        {sorties.map((sortie, index) => (
-          <SortieCard key={index} sortie={sortie} onDelete={handleDelete} />
+        {sorties.map((sortie: any) => (
+          <SortieCard key={sortie.id} sortie={sortie} onDelete={handleDelete} />
         ))}
       </div>
       <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); fetchData(); }} />

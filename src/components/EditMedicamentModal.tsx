@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { getDB, calculateCurrentStock } from '../db';
+import { getDocument, updateDocument, addDocument } from '../firebase/firestoreService';
 
 interface EditMedicamentModalProps {
   show: boolean;
   onHide: () => void;
   onSuccess: () => void;
-  medicamentId: number | null;
+  medicamentId: string | null;
 }
 
 const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide, onSuccess, medicamentId }) => {
@@ -22,19 +22,16 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   useEffect(() => {
     const fetchMedicament = async () => {
       if (medicamentId) {
-        const db = await getDB();
-        const result = db.exec("SELECT nom, prix, type, presentation, lot, expiration_date FROM liste_medicaments WHERE id = ?", [medicamentId]);
-        if (result.length > 0 && result[0].values.length > 0) {
-          const medicament = result[0].values[0];
-          setNom(medicament[0] as string);
-          setPrix(medicament[1] as number);
-          setType(medicament[2] as string);
-          setPresentation(medicament[3] as string);
-          setLot(medicament[4] as string);
-          setExpirationDate(medicament[5] as string);
+        const medicament = await getDocument('liste_medicaments', medicamentId);
+        if (medicament) {
+          setNom(medicament.nom);
+          setPrix(medicament.prix);
+          setType(medicament.type);
+          setPresentation(medicament.presentation);
+          setLot(medicament.lot);
+          setExpirationDate(medicament.expiration_date);
+          setCurrentStock(medicament.quantite_en_stock);
         }
-        const stock = await calculateCurrentStock(medicamentId);
-        setCurrentStock(stock);
       }
     };
     fetchMedicament();
@@ -43,18 +40,26 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (medicamentId) {
-      const db = await getDB();
-      await db.run(
-        "UPDATE liste_medicaments SET nom = ?, prix = ?, type = ?, presentation = ?, lot = ?, expiration_date = ?, sync_status = 'pending_update', last_modified_local = CURRENT_TIMESTAMP WHERE id = ?",
-        [nom, prix, type, presentation, lot, expirationDate, medicamentId]
-      );
+      const updatedMedicament = {
+        nom,
+        prix,
+        type,
+        presentation,
+        lot,
+        expiration_date: expirationDate,
+        updated_at: new Date().toISOString(),
+      };
+      await updateDocument('liste_medicaments', medicamentId, updatedMedicament);
+
       if (newStock !== undefined && newStock !== currentStock) {
         const adjustment = newStock - currentStock;
         const reason = "Ajustement depuis la modification du médicament";
-        await db.run(
-            "INSERT INTO stock_adjustments (article_id, quantite_ajustee, raison, sync_status, last_modified_local) VALUES (?, ?, ?, 'pending_create', CURRENT_TIMESTAMP)",
-            [medicamentId, adjustment, reason]
-        );
+        await addDocument('stock_adjustments', {
+            article_id: medicamentId,
+            quantite_ajustee: adjustment,
+            raison,
+            date_ajustement: new Date().toISOString(),
+        });
       }
       onSuccess();
       onHide();
