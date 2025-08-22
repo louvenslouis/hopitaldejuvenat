@@ -53,11 +53,10 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
 
       if (newStock !== undefined && newStock !== currentStock) {
         const adjustment = newStock - currentStock;
-        const reason = "Ajustement depuis la modification du médicament";
         await addDocument('stock_adjustments', {
             article_id: medicamentId,
             quantite_ajustee: adjustment,
-            raison,
+            raison: "Ajustement depuis la modification du médicament",
             date_ajustement: new Date().toISOString(),
         });
       }

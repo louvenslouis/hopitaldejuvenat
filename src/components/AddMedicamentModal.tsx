@@ -41,10 +41,17 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    const medicamentId = await addDocument('liste_medicaments', newMedicament);
+    const medicamentDocId = await addDocument('liste_medicaments', newMedicament);
 
-    // No need for stock_adjustments here, as initial stock is set directly
-
+    if (initialStock > 0) {
+        const reason = "Stock initial";
+        await addDocument('stock_adjustments', {
+            article_id: medicamentDocId,
+            quantite_ajustee: initialStock,
+            raison,
+            date_ajustement: new Date().toISOString(),
+        });
+    }
     onSuccess();
     onHide();
   };

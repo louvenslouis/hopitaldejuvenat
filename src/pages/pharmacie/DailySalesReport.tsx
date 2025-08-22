@@ -16,7 +16,7 @@ const DailySalesReport: React.FC = () => {
         const date = new Date(sortie.date_sortie).toISOString().split('T')[0];
         sortie.articles.forEach((article: any) => {
           const medicament = allMedicaments.find((med: any) => med.id === article.article_id);
-          if (medicament) {
+          if (medicament && medicament.prix !== undefined) {
             salesByDate[date] = (salesByDate[date] || 0) + (article.quantite * medicament.prix);
           }
         });

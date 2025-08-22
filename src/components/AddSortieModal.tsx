@@ -165,7 +165,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                     <ListGroup>
                       {patients
                         .filter(p => `${p.prenom} ${p.nom}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
-                        .map((p, i) => (
+                        .map((p) => (
                           <ListGroup.Item key={p.id} onClick={() => handlePatientSelect(p)}>
                             {p.prenom} {p.nom}
                           </ListGroup.Item>
@@ -232,7 +232,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                     <ListGroup>
                       {medicaments
                         .filter(m => m.nom.toLowerCase().includes(article.searchTerm.toLowerCase()))
-                        .map((m, i) => (
+                        .map((m) => (
                           <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(index, m)}>
                             {m.nom}
                           </ListGroup.Item>

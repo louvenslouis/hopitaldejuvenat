@@ -68,7 +68,7 @@ const StockReport: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {stockData.map((item, index) => (
+          {stockData.map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
               <td>{item.nom}</td>

@@ -80,7 +80,7 @@ const Entrees: React.FC = () => {
                 <ListGroup>
                   {medicaments
                     .filter(m => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
-                    .map((m, i) => (
+                    .map((m) => (
                       <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(m)}>
                         {m.nom}
                       </ListGroup.Item>

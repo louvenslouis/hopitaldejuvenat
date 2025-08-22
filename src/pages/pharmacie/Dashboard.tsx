@@ -109,8 +109,8 @@ const Dashboard: React.FC = () => {
         <Alert variant="warning" className="mt-4">
           <h5>⚠️ Médicaments à faible stock:</h5>
           <ul>
-            {lowStock.map((med, index) => (
-              <li key={index}>{med.nom} (Stock: {med.quantite_en_stock})</li>
+            {lowStock.map((med: any) => (
+              <li key={med.id}>{med.nom} (Stock: {med.quantite_en_stock})</li>
             ))}
           </ul>
         </Alert>

@@ -43,7 +43,7 @@ const ExpiringStockReport: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {expiringStock.map((item, index) => (
+          {expiringStock.map((item) => (
             <tr key={item.id}>
               <td>{item.nom}</td>
               <td>{item.quantite_en_stock}</td>
