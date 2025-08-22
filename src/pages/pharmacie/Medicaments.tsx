@@ -89,7 +89,7 @@ const Medicaments: React.FC = () => {
       </div>
       <div className="card-grid">
         {medicaments.map((medicament, index) => (
-          <MedicamentCard key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} />
+          <EditableMedicamentCard key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} />
         ))}
       </div>
       <AddMedicamentModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
