@@ -125,3 +125,5 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
     </Modal>
   );
 };
+
+export default EditMedicamentModal;

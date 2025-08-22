@@ -110,3 +110,5 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
     </Modal>
   );
 };
+
+export default AddMedicamentModal;
