@@ -12,12 +12,15 @@ import Retour from './pages/pharmacie/Retour';
 import StockReport from './pages/pharmacie/StockReport';
 import DailySalesReport from './pages/pharmacie/DailySalesReport';
 import ExpiringStockReport from './pages/pharmacie/ExpiringStockReport';
+import SettingsPage from './pages/SettingsPage';
 import { useSync } from './contexts/SyncContext';
+import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 768);
   const { runSync } = useSync();
+  const { theme } = useTheme();
 
   const handleResize = () => {
     if (window.innerWidth < 768) {
@@ -50,7 +53,7 @@ function App() {
 
   return (
     <Router>
-      <div className="app-layout">
+      <div className={`app-layout ${theme}`}>
         <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
         <Header isSidebarCollapsed={isSidebarCollapsed} /> {/* Pass isSidebarCollapsed to Header */}
         <div className={`main-content-area ${isSidebarCollapsed ? 'collapsed' : 'expanded'}`}>
@@ -66,6 +69,7 @@ function App() {
               <Route path="/pharmacie/stock-report" element={<StockReport />} />
               <Route path="/pharmacie/daily-sales-report" element={<DailySalesReport />} />
               <Route path="/pharmacie/expiring-stock-report" element={<ExpiringStockReport />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </main>
         </div>

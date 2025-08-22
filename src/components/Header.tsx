@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dropdown, Button, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useSync } from '../contexts/SyncContext';
 
@@ -52,6 +53,9 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
             </Dropdown.Menu>
           </Dropdown>
         </div>
+        <Link to="/settings" className="btn btn-light">
+          <span className="material-icons">settings</span>
+        </Link>
       </div>
     </header>
   );

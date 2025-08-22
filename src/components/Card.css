@@ -1,14 +1,9 @@
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1rem;
-}
-
 .custom-card {
-  border-radius: 10px;
+  background-color: white;
+  border: 1px solid var(--gray);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  border: 1px solid #e0e0e0;
 }
 
 .custom-card:hover {
@@ -16,32 +11,34 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.card-body-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
+.custom-card .card-body {
+  padding: 1.5rem;
 }
 
-.card-info {
+.custom-card .card-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.custom-card .card-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.card-info .material-icons {
-  font-size: 1.2rem;
+.custom-card .material-icons {
+  color: #6c757d;
 }
 
-.expanded-info {
-  padding: 0 1rem 1rem;
+.custom-card .expanded-info {
+  padding: 0 1.5rem 1.5rem;
 }
 
 .custom-card.saving {
-  border-color: #ffc107; /* Bootstrap warning color */
+  opacity: 0.7;
 }
 
-.custom-card.success .form-control {
-  border-color: #28a745; /* Bootstrap success color */
-  transition: border-color 0.5s ease-in-out;
+.custom-card.success {
+  border-color: #198754;
 }

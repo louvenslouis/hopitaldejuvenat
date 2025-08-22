@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, InputGroup, Dropdown, Button } from 'react-bootstrap';
 import { getDB, calculateCurrentStock } from '../db';
+import PinModal from './PinModal';
 import './Card.css';
 
 interface EditableMedicamentCardProps {
@@ -15,6 +16,7 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
 
   const medicamentId = medicament[0];
   const medicamentName = medicament[1];
@@ -50,7 +52,12 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
       return;
     }
 
+    setShowPinModal(true);
+  };
+
+  const confirmUpdateStock = async () => {
     setIsSaving(true);
+    const newStock = Number(stock);
     const db = await getDB();
     const adjustment = newStock - initialStock;
     const reason = `Ajustement manuel depuis la page de stock.`;
@@ -73,11 +80,8 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
   if (isLoading) {
     return (
         <div className="custom-card">
-            <div className="card-body-line">
-                <div className="card-info">
-                    <span className="material-icons">medication</span>
-                    <span>{medicamentName}</span>
-                </div>
+            <div className="card-body">
+                <div className="card-title">{medicamentName}</div>
                 <div>Chargement du stock...</div>
             </div>
         </div>
@@ -85,39 +89,42 @@ const EditableMedicamentCard: React.FC<EditableMedicamentCardProps> = ({ medicam
   }
 
   return (
-    <div className={`custom-card ${isSaving ? 'saving' : ''} ${isSuccess ? 'success' : ''}`}>
-      <div className="card-body-line">
-        <div className="card-info">
-          <span className="material-icons">medication</span>
-          <span>{medicamentName}</span>
+    <>
+      <div className={`custom-card ${isSaving ? 'saving' : ''} ${isSuccess ? 'success' : ''}`}>
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-start">
+            <div className="card-title">{medicamentName}</div>
+            <Dropdown onClick={(e) => e.stopPropagation()}>
+              <Dropdown.Toggle as={Button} variant="link" id={`dropdown-medicament-${medicamentId}`}>
+                <span className="material-icons">more_vert</span>
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => onEdit(medicamentId)}>Modifier</Dropdown.Item>
+                <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <Form.Group>
+            <Form.Label>Quantité en Stock</Form.Label>
+            <InputGroup>
+              <Form.Control
+                type="number"
+                value={stock}
+                onChange={handleStockChange}
+                onBlur={handleUpdateStock}
+                onFocus={(e) => e.target.select()}
+                disabled={isSaving}
+              />
+            </InputGroup>
+          </Form.Group>
         </div>
-        <Dropdown onClick={(e) => e.stopPropagation()}>
-          <Dropdown.Toggle as={Button} variant="link" id={`dropdown-medicament-${medicamentId}`}>
-            <span className="material-icons">more_vert</span>
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onEdit(medicamentId)}>Modifier</Dropdown.Item>
-            <Dropdown.Item onClick={() => onDelete(medicamentId)}>Supprimer</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
       </div>
-      <div className="expanded-info">
-        <hr />
-        <Form.Group>
-          <Form.Label>Quantité en Stock</Form.Label>
-          <InputGroup>
-            <Form.Control
-              type="number"
-              value={stock}
-              onChange={handleStockChange}
-              onBlur={handleUpdateStock}
-              onFocus={(e) => e.target.select()}
-              disabled={isSaving}
-            />
-          </InputGroup>
-        </Form.Group>
-      </div>
-    </div>
+      <PinModal 
+        show={showPinModal} 
+        onHide={() => setShowPinModal(false)} 
+        onConfirm={confirmUpdateStock} 
+      />
+    </>
   );
 };
 
