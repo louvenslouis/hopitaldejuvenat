@@ -3,7 +3,7 @@ import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getDB } from '../../db';
 import AddMedicamentModal from '../../components/AddMedicamentModal';
 import EditMedicamentModal from '../../components/EditMedicamentModal';
-import EditableMedicamentCard from '../../components/EditableMedicamentCard';
+import MedicamentCardWithStock from '../../components/MedicamentCardWithStock';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -89,7 +89,7 @@ const Medicaments: React.FC = () => {
       </div>
       <div className="card-grid">
         {medicaments.map((medicament, index) => (
-          <EditableMedicamentCard key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} />
+          <MedicamentCardWithStock key={index} medicament={medicament} onEdit={handleEdit} onDelete={handleDelete} onSuccess={fetchData} />
         ))}
       </div>
       <AddMedicamentModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={fetchData} />
