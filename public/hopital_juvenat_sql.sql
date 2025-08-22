@@ -10,10 +10,11 @@ CREATE TABLE liste_medicaments (
     prix REAL DEFAULT 0,
     type TEXT CHECK(type IN ('Comprimé', 'Goutte', 'Matériel médical', 'Sirop', 'Soluté', 'Solution injectable')) DEFAULT NULL,
     presentation TEXT DEFAULT NULL,
+    lot TEXT, -- Add lot number
+    expiration_date DATE, -- Add expiration date
     cacher INTEGER DEFAULT 0,
     note TEXT DEFAULT NULL,
     vente_plus TEXT DEFAULT NULL,
-    quantite_en_stock INTEGER DEFAULT 0, -- New column for current stock
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     firestore_doc_id TEXT DEFAULT NULL,
@@ -156,154 +157,6 @@ CREATE TABLE stock_adjustments (
 
 CREATE INDEX idx_stock_adjustments_article ON stock_adjustments (article_id);
 CREATE INDEX idx_stock_adjustments_date ON stock_adjustments (date_ajustement);
-
--- =============================================
--- TRIGGERS FOR AUTOMATIC STOCK MANAGEMENT
--- =============================================
-
--- Trigger for stock (entries) INSERT
-CREATE TRIGGER tr_stock_insert
-AFTER INSERT ON stock
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock + NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for stock (entries) UPDATE
-CREATE TRIGGER tr_stock_update
-AFTER UPDATE ON stock
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite + NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for stock (entries) DELETE
-CREATE TRIGGER tr_stock_delete
-AFTER DELETE ON stock
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = OLD.article_id;
-END;
-
--- Trigger for sorties_details (dispensations) INSERT
-CREATE TRIGGER tr_sorties_details_insert
-AFTER INSERT ON sorties_details
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for sorties_details (dispensations) UPDATE
-CREATE TRIGGER tr_sorties_details_update
-AFTER UPDATE ON sorties_details
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock + OLD.quantite - NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for sorties_details (dispensations) DELETE
-CREATE TRIGGER tr_sorties_details_delete
-AFTER DELETE ON sorties_details
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock + OLD.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = OLD.article_id;
-END;
-
--- Trigger for retour (returns) INSERT
-CREATE TRIGGER tr_retour_insert
-AFTER INSERT ON retour
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock + NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for retour (returns) UPDATE
-CREATE TRIGGER tr_retour_update
-AFTER UPDATE ON retour
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite + NEW.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for retour (returns) DELETE
-CREATE TRIGGER tr_retour_delete
-AFTER DELETE ON retour
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = OLD.article_id;
-END;
-
--- Trigger for stock_adjustments INSERT
-CREATE TRIGGER tr_stock_adjustments_insert
-AFTER INSERT ON stock_adjustments
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock + NEW.quantite_ajustee,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for stock_adjustments UPDATE
-CREATE TRIGGER tr_stock_adjustments_update
-AFTER UPDATE ON stock_adjustments
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite_ajustee + NEW.quantite_ajustee,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = NEW.article_id;
-END;
-
--- Trigger for stock_adjustments DELETE
-CREATE TRIGGER tr_stock_adjustments_delete
-AFTER DELETE ON stock_adjustments
-FOR EACH ROW
-BEGIN
-    UPDATE liste_medicaments
-    SET quantite_en_stock = quantite_en_stock - OLD.quantite_ajustee,
-        updated_at = CURRENT_TIMESTAMP,
-        last_modified_local = CURRENT_TIMESTAMP
-    WHERE id = OLD.article_id;
-END;
 
 -- =============================================
 -- TRIGGERS FOR TRAÇABILITÉ (Existing, ensure they are still valid)

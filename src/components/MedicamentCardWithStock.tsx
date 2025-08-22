@@ -18,6 +18,8 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
 
   const medicamentId = medicament[0];
   const medicamentName = medicament[1];
+  const lot = medicament[6];
+  const expirationDate = medicament[7];
 
   const fetchStock = async () => {
     setIsLoading(true);
@@ -66,6 +68,8 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
             </Dropdown>
           </div>
           <p>Stock actuel: {stock}</p>
+          <p>Lot: {lot}</p>
+          <p>Date d'expiration: {expirationDate}</p>
         </div>
       </div>
       <AdjustStockModal 
