@@ -13,9 +13,18 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
   const [nifCin, setNifCin] = useState('');
-  const [anneeNaissance, setAnneeNaissance] = useState<number | null | undefined>(undefined);
+  const [anneeNaissance, setAnneeNaissance] = useState<number | null>(null);
   const [sexe, setSexe] = useState('M');
-  const [telephone, setTelephone] = useState<number | null | undefined>(undefined);
+  const [telephone, setTelephone] = useState<number | null>(null);
+
+  const resetForm = () => {
+    setPrenom('');
+    setNom('');
+    setNifCin('');
+    setAnneeNaissance(null);
+    setSexe('M');
+    setTelephone(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,20 +32,21 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
       id: '', // Firestore will generate this
       prenom,
       nom,
-      nif_cin: nifCin,
-      annee_naissance: anneeNaissance || null,
+      nif_cin: nifCin || null,
+      annee_naissance: anneeNaissance,
       sexe,
-      telephone: telephone || null,
+      telephone: telephone,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     await addDocument('patient', newPatient);
     onSuccess();
     onHide();
+    resetForm();
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} onExited={resetForm}>
       <Modal.Header closeButton>
         <Modal.Title>Ajouter un patient</Modal.Title>
       </Modal.Header>
@@ -56,7 +66,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Année de naissance</Form.Label>
-            <Form.Control type="number" value={anneeNaissance === null || anneeNaissance === undefined ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
+            <Form.Control type="number" value={anneeNaissance === null ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Sexe</Form.Label>
@@ -68,7 +78,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Téléphone</Form.Label>
-            <Form.Control type="number" value={telephone === null || telephone === undefined ? '' : telephone} onChange={e => setTelephone(Number(e.target.value))} />
+            <Form.Control type="number" value={telephone === null ? '' : telephone} onChange={e => setTelephone(Number(e.target.value))} />
           </Form.Group>
           <Button variant="primary" type="submit">
             Ajouter

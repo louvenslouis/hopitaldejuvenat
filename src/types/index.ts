@@ -15,10 +15,10 @@ export interface Patient {
   id: string;
   prenom: string;
   nom: string;
-  nif_cin?: string;
-  annee_naissance?: number;
+  nif_cin?: string | null;
+  annee_naissance?: number | null;
   sexe?: string;
-  telephone?: number;
+  telephone?: number | null;
   created_at: string;
   updated_at: string;
 }

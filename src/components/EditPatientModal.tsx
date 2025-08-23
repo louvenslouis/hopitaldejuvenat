@@ -13,10 +13,10 @@ interface EditPatientModalProps {
 const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuccess, patientId }) => {
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
-  const [nifCin, setNifCin] = useState('');
-  const [anneeNaissance, setAnneeNaissance] = useState<number | undefined>();
+  const [nifCin, setNifCin] = useState<string | null>('');
+  const [anneeNaissance, setAnneeNaissance] = useState<number | null>(null);
   const [sexe, setSexe] = useState('M');
-  const [telephone, setTelephone] = useState<number | undefined>();
+  const [telephone, setTelephone] = useState<number | null>(null);
 
   useEffect(() => {
     if (patientId) {
@@ -25,10 +25,10 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
         if (patient) {
           setPrenom(patient.prenom);
           setNom(patient.nom);
-          setNifCin(patient.nif_cin || '');
-          setAnneeNaissance(patient.annee_naissance);
+          setNifCin(patient.nif_cin || null);
+          setAnneeNaissance(patient.annee_naissance || null);
           setSexe(patient.sexe || 'M');
-          setTelephone(patient.telephone);
+          setTelephone(patient.telephone || null);
         }
       };
       fetchPatient();
@@ -42,9 +42,9 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
         prenom,
         nom,
         nif_cin: nifCin,
-        annee_naissance: anneeNaissance || null,
+        annee_naissance: anneeNaissance,
         sexe,
-        telephone: telephone || null,
+        telephone: telephone,
         updated_at: new Date().toISOString(),
       };
       await updateDocument('patient', patientId, updatedPatient);
@@ -70,11 +70,11 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>NIF/CIN</Form.Label>
-            <Form.Control type="text" value={nifCin} onChange={e => setNifCin(e.target.value)} />
+            <Form.Control type="text" value={nifCin || ''} onChange={e => setNifCin(e.target.value)} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Année de naissance</Form.Label>
-            <Form.Control type="number" value={anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
+            <Form.Control type="number" value={anneeNaissance === null ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Sexe</Form.Label>
@@ -86,7 +86,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Téléphone</Form.Label>
-            <Form.Control type="number" value={telephone} onChange={e => setTelephone(Number(e.target.value))} />
+            <Form.Control type="number" value={telephone === null ? '' : telephone} onChange={e => setTelephone(Number(e.target.value))} />
           </Form.Group>
           <Button variant="primary" type="submit">
             Enregistrer les modifications
