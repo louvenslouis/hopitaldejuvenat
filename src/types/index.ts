@@ -42,3 +42,17 @@ export interface Retour {
   date_modification: string;
   nom?: string; // Added for enriched data
 }
+
+export interface Sortie {
+  id: string;
+  date_sortie: string;
+  service: string;
+  employe: string;
+  patient_id?: string;
+  chambre?: number;
+  memo?: string;
+  articles: Array<{ article_id: string; quantite: number }>;
+  created_at: string;
+  patient_nom?: string; // Enriched property
+  articles_summary?: string; // Enriched property
+}

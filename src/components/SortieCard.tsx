@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import './Card.css';
+import type { Sortie } from '../types';
 
 interface SortieCardProps {
-  sortie: any;
+  sortie: Sortie;
   onDelete: (id: string) => void;
 }
 
