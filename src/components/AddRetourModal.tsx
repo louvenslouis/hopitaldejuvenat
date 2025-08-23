@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { addDocument, getCollection, updateDocument } from '../firebase/firestoreService';
 import type { Medicament } from '../types';

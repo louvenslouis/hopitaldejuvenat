@@ -13,9 +13,9 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
   const [nifCin, setNifCin] = useState('');
-  const [anneeNaissance, setAnneeNaissance] = useState<number | undefined>();
+  const [anneeNaissance, setAnneeNaissance] = useState<number | null | undefined>();
   const [sexe, setSexe] = useState('M');
-  const [telephone, setTelephone] = useState<number | undefined>();
+  const [telephone, setTelephone] = useState<number | null | undefined>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
