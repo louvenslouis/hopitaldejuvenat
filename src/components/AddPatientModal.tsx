@@ -56,7 +56,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Année de naissance</Form.Label>
-            <Form.Control type="number" value={anneeNaissance === null ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
+            <Form.Control type="number" value={anneeNaissance === null || anneeNaissance === undefined ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Sexe</Form.Label>
@@ -68,7 +68,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Téléphone</Form.Label>
-            <Form.Control type="number" value={telephone === null ? '' : telephone} onChange={e => setTelephone(Number(e.target.value))} />
+            <Form.Control type="number" value={telephone === null || telephone === undefined ? '' : telephone} onChange={e => setTelephone(Number(e.target.value))} />
           </Form.Group>
           <Button variant="primary" type="submit">
             Ajouter
