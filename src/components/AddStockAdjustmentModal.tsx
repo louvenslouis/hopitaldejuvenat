@@ -10,7 +10,7 @@ interface AddStockAdjustmentModalProps {
 }
 
 const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show, onHide, onSuccess }) => {
-  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
@@ -27,7 +27,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('liste_medicaments');
+      const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
       setMedicaments(medicamentsData);
     };
     if (show) {
@@ -35,7 +35,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
     }
   }, [show]);
 
-  const handleMedicamentSelect = (medicament: any) => {
+  const handleMedicamentSelect = (medicament: Medicament) => {
     setSelectedMedicament(medicament.id);
     setMedicamentSearchTerm(medicament.nom);
     setShowMedicamentResults(false);
@@ -53,7 +53,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
       });
 
       // Update medicament stock
-      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
         await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantiteAjustee });
       }
@@ -81,8 +81,8 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
             {showMedicamentResults && medicamentSearchTerm && (
               <ListGroup>
                 {medicaments
-                  .filter(m => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
-                  .map((m) => (
+                  .filter((m: Medicament) => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
+                  .map((m: Medicament) => (
                     <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(m)}>
                       {m.nom}
                     </ListGroup.Item>

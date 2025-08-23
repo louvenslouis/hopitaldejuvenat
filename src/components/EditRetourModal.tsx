@@ -91,3 +91,5 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
     </Modal>
   );
 };
+
+export default EditRetourModal;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { addDocument } from '../firebase/firestoreService';
-import type { Medicament } from '../types';
+import type { Medicament } from '../types'; // Used for type checking
 
 interface AddMedicamentModalProps {
   show: boolean;
@@ -31,7 +31,8 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newMedicament = {
+    const newMedicament: Medicament = {
+      id: '', // Firestore will generate this
       nom,
       prix,
       type,

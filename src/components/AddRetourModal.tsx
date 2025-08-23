@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { addDocument, getCollection, updateDocument } from '../firebase/firestoreService';
 import type { Medicament } from '../types';
@@ -10,13 +10,13 @@ interface AddRetourModalProps {
 }
 
 const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess }) => {
-  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [quantite, setQuantite] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('liste_medicaments');
+      const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
       setMedicaments(medicamentsData);
     };
     if (show) {
@@ -36,7 +36,7 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
       });
 
       // Update medicament stock
-      const medicament = medicaments.find(m => m.id === selectedMedicament);
+      const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
         await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
       }
@@ -57,7 +57,7 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
             <Form.Label>Médicament</Form.Label>
             <Form.Select value={selectedMedicament} onChange={e => setSelectedMedicament(e.target.value)}>
               <option value="">Sélectionner un médicament</option>
-              {medicaments.map((med) => (
+              {medicaments.map((med: Medicament) => (
                 <option key={med.id} value={med.id}>{med.nom}</option>
               ))}
             </Form.Select>

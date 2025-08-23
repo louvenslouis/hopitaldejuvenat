@@ -19,7 +19,8 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newPatient = {
+    const newPatient: Patient = {
+      id: '', // Firestore will generate this
       prenom,
       nom,
       nif_cin: nifCin,
