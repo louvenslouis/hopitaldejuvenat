@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
 import { getCollection, addDocument, updateDocument } from '../../firebase/firestoreService';
 import EntreeCard from '../../components/EntreeCard';
-import { Medicament } from '../../types';
+import type { Medicament } from '../../types';
 
 const Entrees: React.FC = () => {
   const [entrees, setEntrees] = useState<any[]>([]);

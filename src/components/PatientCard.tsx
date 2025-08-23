@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
-import './Card.css';
+import type { Patient } from '../types';
 
 interface PatientCardProps {
   patient: any;

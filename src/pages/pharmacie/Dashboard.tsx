@@ -5,7 +5,7 @@ import KpiCard from '../../components/dashboard/KpiCard';
 import TopSoldMedicamentsChart from '../../components/dashboard/TopSoldMedicamentsChart';
 import SortiesPerDayChart from '../../components/dashboard/SortiesPerDayChart';
 import RecentSortiesTable from '../../components/dashboard/RecentSortiesTable';
-import { Medicament, Patient } from '../../types';
+import type { Medicament, Patient } from '../../types';
 
 const Dashboard: React.FC = () => {
   const [expiringSoon, setExpiringSoon] = useState<Medicament[]>([]);

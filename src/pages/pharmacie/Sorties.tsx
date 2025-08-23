@@ -3,7 +3,7 @@ import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddSortieModal from '../../components/AddSortieModal';
 import SortieCard from '../../components/SortieCard';
-import { Medicament, Patient } from '../../types';
+import type { Medicament, Patient } from '../../types';
 
 const Sorties: React.FC = () => {
   const [sorties, setSorties] = useState<any[]>([]);

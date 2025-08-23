@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert, ListGroup, InputGroup } from 'react-bootstrap';
 import { addDocument, getCollection, getDocument, updateDocument } from '../firebase/firestoreService';
+import type { Medicament, Patient } from '../types';
 import AddPatientModal from './AddPatientModal';
 import AddMedicamentModal from './AddMedicamentModal';
 import { useUser } from '../contexts/UserContext';

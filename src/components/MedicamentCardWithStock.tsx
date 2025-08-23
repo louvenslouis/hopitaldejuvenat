@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import { getDocument } from '../firebase/firestoreService';
+import type { Medicament } from '../types';
 import AdjustStockModal from './AdjustStockModal';
 import './Card.css';
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { getDocument, updateDocument } from '../firebase/firestoreService';
+import type { Patient } from '../types';
 
 interface EditPatientModalProps {
   show: boolean;

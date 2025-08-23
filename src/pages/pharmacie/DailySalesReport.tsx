@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
 import { getCollection } from '../../firebase/firestoreService';
-import { Medicament } from '../../types';
+import type { Medicament } from '../../types';
 
 const DailySalesReport: React.FC = () => {
   const [dailySales, setDailySales] = useState<any[]>([]);

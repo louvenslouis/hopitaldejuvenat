@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { getCollection, getDocument, updateDocument } from '../firebase/firestoreService';
+import type { Medicament } from '../types';
 
 interface EditRetourModalProps {
   show: boolean;

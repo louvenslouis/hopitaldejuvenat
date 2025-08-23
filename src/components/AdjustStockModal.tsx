@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { addDocument, updateDocument } from '../firebase/firestoreService';
+import type { Medicament } from '../types';
 import PinModal from './PinModal';
 
 interface AdjustStockModalProps {

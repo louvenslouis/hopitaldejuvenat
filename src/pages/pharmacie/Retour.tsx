@@ -4,7 +4,7 @@ import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddRetourModal from '../../components/AddRetourModal';
 import EditRetourModal from '../../components/EditRetourModal';
 import RetourCard from '../../components/RetourCard';
-import { Medicament } from '../../types';
+import type { Medicament } from '../../types';
 
 const Retour: React.FC = () => {
   const [retours, setRetours] = useState<any[]>([]);
