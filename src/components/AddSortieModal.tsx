@@ -251,3 +251,32 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
             ))}
             <Button variant="secondary" onClick={addArticle} className="mt-2">Ajouter un article</Button>
             <Button variant="info" onClick={() => setShowAddMedicamentModal(true)} className="mt-2 ms-2">Nouveau Médicament</Button>
+
+
+          <Button variant="primary" type="submit" className="mt-4">Enregistrer la sortie</Button>
+        </Form>
+      </Modal.Body>
+    </Modal>
+
+    <AddPatientModal 
+      show={showAddPatientModal} 
+      onHide={() => setShowAddPatientModal(false)} 
+      onSuccess={() => {
+        setShowAddPatientModal(false);
+        fetchData();
+      }} 
+    />
+
+    <AddMedicamentModal 
+      show={showAddMedicamentModal} 
+      onHide={() => setShowAddMedicamentModal(false)} 
+      onSuccess={() => {
+        setShowAddMedicamentModal(false);
+        fetchData();
+      }} 
+    />
+  </>
+  );
+};
+
+export default AddSortieModal;
