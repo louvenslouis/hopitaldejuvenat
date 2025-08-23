@@ -13,8 +13,8 @@ interface AddSortieModalProps {
 }
 
 const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess }) => {
-  const [patients, setPatients] = useState<any[]>([]);
-  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<string | undefined>();
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [showPatientResults, setShowPatientResults] = useState(false);
@@ -42,9 +42,9 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   };
 
   const fetchData = async () => {
-    const patientsData = await getCollection('patient');
+    const patientsData = await getCollection('patient') as Patient[];
     setPatients(patientsData);
-    const medicamentsData = await getCollection('liste_medicaments');
+    const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
     setMedicaments(medicamentsData);
   };
 
@@ -65,7 +65,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     setStockError(null); // Clear error on change
   };
 
-  const handleMedicamentSelect = (index: number, medicament: any) => {
+  const handleMedicamentSelect = (index: number, medicament: Medicament) => {
     const newArticles = [...articles];
     newArticles[index]['article_id'] = medicament.id;
     newArticles[index]['searchTerm'] = medicament.nom;
@@ -73,7 +73,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     setArticles(newArticles);
   }
 
-  const handlePatientSelect = (patient: any) => {
+  const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient.id);
     setPatientSearchTerm(`${patient.prenom} ${patient.nom}`);
     setShowPatientResults(false);
@@ -110,7 +110,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
     // Perform stock check and update
     for (const article of validArticles) {
-      const medicament = await getDocument('liste_medicaments', article.article_id);
+      const medicament = await getDocument('liste_medicaments', article.article_id) as Medicament;
       if (!medicament) {
         setStockError(`Médicament ${article.searchTerm} introuvable.`);
         return;
@@ -122,7 +122,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
         return;
       }
       // Update stock in Firestore
-      await updateDocument('liste_medicaments', article.article_id, { quantite_en_stock: currentStock - article.quantite });
+      await updateDocument('liste_medicaments', medicament.id, { quantite_en_stock: currentStock - article.quantite });
     }
 
     const newSortie = {
@@ -165,8 +165,8 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                   {showPatientResults && patientSearchTerm && (
                     <ListGroup>
                       {patients
-                        .filter(p => `${p.prenom} ${p.nom}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
-                        .map((p) => (
+                        .filter((p: Patient) => `${p.prenom} ${p.nom}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
+                        .map((p: Patient) => (
                           <ListGroup.Item key={p.id} onClick={() => handlePatientSelect(p)}>
                             {p.prenom} {p.nom}
                           </ListGroup.Item>
@@ -232,8 +232,8 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                   {article.showResults && article.searchTerm && (
                     <ListGroup>
                       {medicaments
-                        .filter(m => m.nom.toLowerCase().includes(article.searchTerm.toLowerCase()))
-                        .map((m) => (
+                        .filter((m: Medicament) => m.nom.toLowerCase().includes(article.searchTerm.toLowerCase()))
+                        .map((m: Medicament) => (
                           <ListGroup.Item key={m.id} onClick={() => handleMedicamentSelect(index, m)}>
                             {m.nom}
                           </ListGroup.Item>
@@ -251,32 +251,3 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
             ))}
             <Button variant="secondary" onClick={addArticle} className="mt-2">Ajouter un article</Button>
             <Button variant="info" onClick={() => setShowAddMedicamentModal(true)} className="mt-2 ms-2">Nouveau Médicament</Button>
-
-
-          <Button variant="primary" type="submit" className="mt-4">Enregistrer la sortie</Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
-
-    <AddPatientModal 
-      show={showAddPatientModal} 
-      onHide={() => setShowAddPatientModal(false)} 
-      onSuccess={() => {
-        setShowAddPatientModal(false);
-        fetchData();
-      }} 
-    />
-
-    <AddMedicamentModal 
-      show={showAddMedicamentModal} 
-      onHide={() => setShowAddMedicamentModal(false)} 
-      onSuccess={() => {
-        setShowAddMedicamentModal(false);
-        fetchData();
-      }} 
-    />
-  </>
-  );
-};
-
-export default AddSortieModal;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import { getDocument } from '../firebase/firestoreService';
-import type { Medicament } from '../types';
 import AdjustStockModal from './AdjustStockModal';
+import type { Medicament } from '../types';
 import './Card.css';
 
 interface MedicamentCardWithStockProps {
-  medicament: any;
+  medicament: Medicament;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onSuccess: () => void;
@@ -25,7 +25,7 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
   const fetchStock = async () => {
     setIsLoading(true);
     try {
-      const fetchedMedicament = await getDocument('liste_medicaments', medicamentId);
+      const fetchedMedicament = await getDocument('liste_medicaments', medicamentId) as Medicament;
       if (fetchedMedicament) {
         setStock(fetchedMedicament.quantite_en_stock);
       }

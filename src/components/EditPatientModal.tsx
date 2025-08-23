@@ -21,13 +21,13 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
   useEffect(() => {
     if (patientId) {
       const fetchPatient = async () => {
-        const patient = await getDocument('patient', patientId);
+        const patient = await getDocument('patient', patientId) as Patient;
         if (patient) {
           setPrenom(patient.prenom);
           setNom(patient.nom);
-          setNifCin(patient.nif_cin);
+          setNifCin(patient.nif_cin || '');
           setAnneeNaissance(patient.annee_naissance);
-          setSexe(patient.sexe);
+          setSexe(patient.sexe || 'M');
           setTelephone(patient.telephone);
         }
       };

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
+import './Card.css';
 import type { Retour } from '../types';
 
 interface RetourCardProps {
-  retour: any;
+  retour: Retour;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }

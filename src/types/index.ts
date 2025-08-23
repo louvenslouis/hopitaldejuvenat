@@ -22,3 +22,23 @@ export interface Patient {
   created_at: string;
   updated_at: string;
 }
+
+export interface Entree {
+  id: string;
+  article_id: string;
+  quantite: number;
+  date_expiration?: string;
+  date_enregistrement: string;
+  date_modification: string;
+  nom?: string; // Added for enriched data
+}
+
+export interface Retour {
+  id: string;
+  article_id: string;
+  quantite: number;
+  sortie_id?: string;
+  date_enregistrement: string;
+  date_modification: string;
+  nom?: string; // Added for enriched data
+}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import './Card.css';
 import type { Entree } from '../types';
 
 interface EntreeCardProps {
-  entree: any;
+  entree: Entree;
   // No actions for entrees
 }
 

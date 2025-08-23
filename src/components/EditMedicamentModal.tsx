@@ -23,14 +23,14 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   useEffect(() => {
     const fetchMedicament = async () => {
       if (medicamentId) {
-        const medicament = await getDocument('liste_medicaments', medicamentId);
+        const medicament = await getDocument('liste_medicaments', medicamentId) as Medicament;
         if (medicament) {
           setNom(medicament.nom);
           setPrix(medicament.prix);
           setType(medicament.type);
           setPresentation(medicament.presentation);
-          setLot(medicament.lot);
-          setExpirationDate(medicament.expiration_date);
+          setLot(medicament.lot || '');
+          setExpirationDate(medicament.expiration_date || '');
           setCurrentStock(medicament.quantite_en_stock);
         }
       }
@@ -54,10 +54,11 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
 
       if (newStock !== undefined && newStock !== currentStock) {
         const adjustment = newStock - currentStock;
+        const reason = "Ajustement depuis la modification du médicament";
         await addDocument('stock_adjustments', {
             article_id: medicamentId,
             quantite_ajustee: adjustment,
-            raison: "Ajustement depuis la modification du médicament",
+            raison: reason,
             date_ajustement: new Date().toISOString(),
         });
       }
