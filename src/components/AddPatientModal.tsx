@@ -55,7 +55,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
             <Form.Control type="text" value={nifCin} onChange={e => setNifCin(e.target.value)} />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Année de naissance</Label>
+            <Form.Label>Année de naissance</Form.Label>
             <Form.Control type="number" value={anneeNaissance === null || anneeNaissance === undefined ? '' : anneeNaissance} onChange={e => setAnneeNaissance(Number(e.target.value))} />
           </Form.Group>
           <Form.Group className="mb-3">
