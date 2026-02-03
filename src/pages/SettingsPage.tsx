@@ -140,9 +140,17 @@ const SettingsPage: React.FC = () => {
                     {isInstalled ? (
                       <div className="text-success">Application déjà installée.</div>
                     ) : (
-                      <Button variant="outline-primary" disabled={!canInstall} onClick={promptInstall}>
-                        {canInstall ? 'Installer l’application' : 'Installation indisponible'}
-                      </Button>
+                      <>
+                        <Button variant="outline-primary" disabled={!canInstall} onClick={promptInstall}>
+                          {canInstall ? 'Installer l’application' : 'Installation indisponible'}
+                        </Button>
+                        {!canInstall && (
+                          <Form.Text className="text-muted d-block mt-2">
+                            Si le bouton est indisponible: utilise Chrome/Edge sur Android ou Desktop.
+                            Sur iPhone/iPad, ouvre le menu Partager puis “Ajouter à l’écran d’accueil”.
+                          </Form.Text>
+                        )}
+                      </>
                     )}
                   </Form.Group>
                 </ListGroup.Item>

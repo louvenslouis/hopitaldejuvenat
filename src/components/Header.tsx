@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
 import { useSyncStatus } from '../hooks/useSyncStatus';
 import { clearFirestoreCache, requestFirestoreRefresh } from '../firebase/firestoreService';
+import { setFirestoreNetworkEnabled } from '../firebase';
 
 interface HeaderProps {
   isSidebarCollapsed: boolean;
@@ -35,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
       '/requisition': 'Réquisition',
       '/settings': 'Paramètres',
       '/settings/users': 'Utilisateurs',
+      '/journal': 'Journal',
     };
     return map[path] || 'Hôpital Juvénat';
   }, [location.pathname]);
@@ -72,7 +74,16 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed }) => {
     );
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    if (offlineMode) {
+      localStorage.setItem('offlineMode', 'false');
+      window.dispatchEvent(new Event('offline-mode-changed'));
+      try {
+        await setFirestoreNetworkEnabled(true);
+      } catch {
+        // Non-blocking: continue with refresh
+      }
+    }
     clearFirestoreCache();
     requestFirestoreRefresh();
     window.location.reload();

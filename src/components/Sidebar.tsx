@@ -117,6 +117,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           <NavLink to="/settings/users" className="nav-link">
             <span className="material-icons">manage_accounts</span> <span>Utilisateurs</span>
           </NavLink>
+          <NavLink to="/journal" className="nav-link">
+            <span className="material-icons">history</span> <span>Journal</span>
+          </NavLink>
         </>
       )}
     </Nav>

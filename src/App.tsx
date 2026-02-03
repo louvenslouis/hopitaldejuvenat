@@ -20,6 +20,7 @@ import StockPublic from './pages/pharmacie/StockPublic';
 import SettingsPage from './pages/SettingsPage';
 import UsersPage from './pages/UsersPage';
 import Requisition from './pages/Requisition';
+import JournalPage from './pages/JournalPage';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
 
@@ -66,6 +67,7 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/users" element={<UsersPage />} />
               <Route path="/requisition" element={<Requisition />} />
+              <Route path="/journal" element={<JournalPage />} />
             </Routes>
           </main>
         </div>

@@ -13,6 +13,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [activeUser]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeUser) {
+      localStorage.setItem('activeUser', JSON.stringify(activeUser));
+    } else {
+      localStorage.removeItem('activeUser');
+    }
+  }, [activeUser]);
+
+  useEffect(() => {
     let unsubscribe: (() => void) | null = null;
     let isMounted = true;
 

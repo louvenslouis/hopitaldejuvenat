@@ -11,6 +11,7 @@ const COLLECTIONS = [
   { key: 'retour', label: 'retours' },
   { key: 'stock_adjustments', label: 'ajustements_stock' },
   { key: 'personnel', label: 'personnel' },
+  { key: 'journal', label: 'journal' },
 ];
 
 const toSafeString = (value: unknown) => {
