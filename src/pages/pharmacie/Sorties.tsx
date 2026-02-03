@@ -1,55 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup, Table, ButtonGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddSortieModal from '../../components/AddSortieModal';
 import SortieCard from '../../components/SortieCard';
-import type { Medicament, Patient } from '../../types';
+import type { Medicament, Patient, Sortie } from '../../types';
 
 const Sorties: React.FC = () => {
-  const [sorties, setSorties] = useState<any[]>([]);
+  const [sorties, setSorties] = useState<Sortie[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'history' | 'cards'>('history');
 
-  const fetchData = async () => {
-    const allSorties = await getCollection('sorties');
+  const fetchData = useCallback(async () => {
+    const allSorties = await getCollection<Sortie>('sorties');
     const collectionName = 'patients';
-    const allPatients = await getCollection(collectionName) as Patient[];
-    const allMedicaments = await getCollection('medicaments') as Medicament[];
+    const allPatients = await getCollection<Patient>(collectionName);
+    const allMedicaments = await getCollection<Medicament>('medicaments');
 
-    const enrichedSorties = allSorties.map((sortie: any) => {
-      const patient = allPatients.find((p: Patient) => p.id === sortie.patient_id);
+    const enrichedSorties = allSorties.map((sortie) => {
+      const patient = allPatients.find((p) => p.id === sortie.patient_id);
       const patient_nom = patient ? `${patient.prenom} ${patient.nom}` : 'N/A';
 
-      const articlesDetails = sortie.articles.map((article: any) => {
-        const medicament = allMedicaments.find((med: Medicament) => med.id === article.article_id);
+      const articlesDetails = sortie.articles.map((article) => {
+        const medicament = allMedicaments.find((med) => med.id === article.article_id);
         return `${article.quantite} ${medicament ? medicament.nom : 'Inconnu'}`;
       }).join(', ');
 
       return {
-        id: sortie.id,
-        date_sortie: sortie.date_sortie,
-        service: sortie.service,
-        employe: sortie.employe,
-        patient_nom: patient_nom,
-        chambre: sortie.chambre,
-        memo: sortie.memo,
+        ...sortie,
+        patient_nom,
         articles_summary: articlesDetails,
       };
     });
 
-    const filteredSorties = enrichedSorties.filter((s: any) => 
+    const filteredSorties = enrichedSorties.filter((s) => 
       s.patient_nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.employe.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    setSorties(filteredSorties.sort((a: any, b: any) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime()));
-  };
+    setSorties(filteredSorties.sort((a, b) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime()));
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm]);
+  }, [fetchData]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette sortie ?')) {
@@ -116,7 +111,7 @@ const Sorties: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {sorties.map((sortie: any) => (
+              {sorties.map((sortie) => (
                 <tr key={sortie.id}>
                   <td>{new Date(sortie.date_sortie).toLocaleString('fr-HT')}</td>
                   <td>{sortie.patient_nom}</td>
@@ -138,7 +133,7 @@ const Sorties: React.FC = () => {
         </div>
       ) : (
         <div className="card-grid">
-          {sorties.map((sortie: any) => (
+          {sorties.map((sortie) => (
             <SortieCard key={sortie.id} sortie={sortie} onDelete={handleDelete} />
           ))}
         </div>

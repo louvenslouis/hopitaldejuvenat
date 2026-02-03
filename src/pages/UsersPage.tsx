@@ -13,8 +13,8 @@ const UsersPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchUsers = async () => {
-    const data = await getCollection('personnel');
-    setUsers(data as User[]);
+    const data = await getCollection<User>('personnel');
+    setUsers(data);
   };
 
   useEffect(() => {

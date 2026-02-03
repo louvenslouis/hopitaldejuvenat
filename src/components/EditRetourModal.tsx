@@ -17,11 +17,11 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('medicaments') as Medicament[];
+      const medicamentsData = await getCollection<Medicament>('medicaments');
       setMedicaments(medicamentsData);
 
       if (retourId) {
-        const retour = await getDocument('retour', retourId) as Retour;
+        const retour = await getDocument<Retour>('retour', retourId);
         if (retour) {
           setSelectedMedicament(retour.article_id);
           setQuantite(retour.quantite);
@@ -37,7 +37,7 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
     e.preventDefault();
     if (selectedMedicament && quantite > 0 && retourId) {
       // Update medicament stock (revert old quantity, add new quantity)
-      const oldRetour = await getDocument('retour', retourId) as Retour;
+      const oldRetour = await getDocument<Retour>('retour', retourId);
       if (oldRetour) {
         const oldMedicament = medicaments.find((m: Medicament) => m.id === oldRetour.article_id);
         if (oldMedicament) {

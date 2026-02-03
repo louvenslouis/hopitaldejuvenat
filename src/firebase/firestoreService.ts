@@ -8,6 +8,8 @@ import {
   doc,
   getDoc,
   getDocFromCache,
+  type DocumentData,
+  type UpdateData,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -17,20 +19,22 @@ type CacheEntry<T> = {
   timestamp: number;
 };
 
+type FirestoreDoc = { id: string };
+
 const FORCE_REFRESH_UNTIL_KEY = 'forceRefreshUntil';
 const FORCE_REFRESH_WINDOW_MS = 15 * 1000;
-const collectionCache = new Map<string, CacheEntry<any[]>>();
-const documentCache = new Map<string, CacheEntry<any | undefined>>();
+const collectionCache = new Map<string, CacheEntry<FirestoreDoc[]>>();
+const documentCache = new Map<string, CacheEntry<FirestoreDoc | undefined>>();
 
-const hasCache = (entry?: CacheEntry<any>) => entry !== undefined;
+const hasCache = (entry?: CacheEntry<unknown>) => entry !== undefined;
 
 const makeDocKey = (collectionName: string, id: string) => `${collectionName}:${id}`;
 
-const updateCollectionCache = (collectionName: string, items: any[]) => {
+const updateCollectionCache = <T extends FirestoreDoc>(collectionName: string, items: T[]) => {
   collectionCache.set(collectionName, { data: items, timestamp: Date.now() });
 };
 
-const upsertCollectionItem = (collectionName: string, item: any) => {
+const upsertCollectionItem = <T extends FirestoreDoc>(collectionName: string, item: T) => {
   const existing = collectionCache.get(collectionName);
   if (!existing) return;
   const updated = existing.data.map((doc) => (doc.id === item.id ? { ...doc, ...item } : doc));
@@ -55,17 +59,20 @@ export const requestFirestoreRefresh = () => {
   localStorage.setItem(FORCE_REFRESH_UNTIL_KEY, String(Date.now() + FORCE_REFRESH_WINDOW_MS));
 };
 
-export const getCollection = async (collectionName: string, options?: { force?: boolean }) => {
+export const getCollection = async <T extends FirestoreDoc = FirestoreDoc>(
+  collectionName: string,
+  options?: { force?: boolean }
+): Promise<T[]> => {
   const force = (options?.force ?? false) || shouldForceRefresh();
   const cached = collectionCache.get(collectionName);
   if (!force && hasCache(cached)) {
-    return cached.data;
+    return cached.data as T[];
   }
 
   if (!force) {
     try {
       const querySnapshot = await getDocsFromCache(collection(db, collectionName));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
       updateCollectionCache(collectionName, data);
       return data;
     } catch (cacheError) {
@@ -75,17 +82,17 @@ export const getCollection = async (collectionName: string, options?: { force?: 
 
   try {
     const querySnapshot = await getDocs(collection(db, collectionName));
-    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
     updateCollectionCache(collectionName, data);
     return data;
   } catch (error) {
     console.warn(`getCollection fallback to cache for ${collectionName}`, error);
     if (cached) {
-      return cached.data;
+      return cached.data as T[];
     }
     try {
       const querySnapshot = await getDocsFromCache(collection(db, collectionName));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
       updateCollectionCache(collectionName, data);
       return data;
     } catch (cacheError) {
@@ -96,16 +103,16 @@ export const getCollection = async (collectionName: string, options?: { force?: 
   }
 };
 
-export const getDocument = async (
+export const getDocument = async <T extends FirestoreDoc = FirestoreDoc>(
   collectionName: string,
   id: string,
   options?: { force?: boolean }
-) => {
+): Promise<T | undefined> => {
   const force = (options?.force ?? false) || shouldForceRefresh();
   const key = makeDocKey(collectionName, id);
   const cachedDoc = documentCache.get(key);
   if (!force && hasCache(cachedDoc)) {
-    return cachedDoc.data;
+    return cachedDoc.data as T | undefined;
   }
 
   const cachedCollection = collectionCache.get(collectionName);
@@ -113,7 +120,7 @@ export const getDocument = async (
     const found = cachedCollection.data.find((doc) => doc.id === id);
     if (found) {
       documentCache.set(key, { data: found, timestamp: Date.now() });
-      return found;
+      return found as T;
     }
     return undefined;
   }
@@ -123,7 +130,7 @@ export const getDocument = async (
     try {
       const docSnap = await getDocFromCache(docRef);
       if (docSnap.exists()) {
-        const data = { id: docSnap.id, ...docSnap.data() };
+        const data = { id: docSnap.id, ...docSnap.data() } as T;
         documentCache.set(key, { data, timestamp: Date.now() });
         upsertCollectionItem(collectionName, data);
         return data;
@@ -136,7 +143,7 @@ export const getDocument = async (
   try {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const data = { id: docSnap.id, ...docSnap.data() };
+      const data = { id: docSnap.id, ...docSnap.data() } as T;
       documentCache.set(key, { data, timestamp: Date.now() });
       upsertCollectionItem(collectionName, data);
       return data;
@@ -145,12 +152,12 @@ export const getDocument = async (
   } catch (error) {
     console.warn(`getDocument fallback to cache for ${collectionName}/${id}`, error);
     if (cachedDoc) {
-      return cachedDoc.data;
+      return cachedDoc.data as T | undefined;
     }
     try {
       const docSnap = await getDocFromCache(docRef);
       if (docSnap.exists()) {
-        const data = { id: docSnap.id, ...docSnap.data() };
+        const data = { id: docSnap.id, ...docSnap.data() } as T;
         documentCache.set(key, { data, timestamp: Date.now() });
         upsertCollectionItem(collectionName, data);
         return data;
@@ -164,20 +171,27 @@ export const getDocument = async (
   }
 };
 
-export const addDocument = async (collectionName: string, data: any) => {
-  const docRef = await addDoc(collection(db, collectionName), data);
-  const item = { id: docRef.id, ...data };
+export const addDocument = async <T extends object>(
+  collectionName: string,
+  data: T
+): Promise<string> => {
+  const docRef = await addDoc(collection(db, collectionName), data as DocumentData);
+  const item = { id: docRef.id, ...data } as FirestoreDoc;
   documentCache.set(makeDocKey(collectionName, docRef.id), { data: item, timestamp: Date.now() });
   upsertCollectionItem(collectionName, item);
   return docRef.id;
 };
 
-export const updateDocument = async (collectionName: string, id: string, data: any) => {
+export const updateDocument = async (
+  collectionName: string,
+  id: string,
+  data: UpdateData<DocumentData>
+): Promise<void> => {
   const docRef = doc(db, collectionName, id);
   await updateDoc(docRef, data);
   const key = makeDocKey(collectionName, id);
   const cached = documentCache.get(key);
-  const merged = cached?.data ? { ...cached.data, ...data } : { id, ...data };
+  const merged = (cached?.data ? { ...cached.data, ...data } : { id, ...data }) as FirestoreDoc;
   documentCache.set(key, { data: merged, timestamp: Date.now() });
   upsertCollectionItem(collectionName, merged);
 };

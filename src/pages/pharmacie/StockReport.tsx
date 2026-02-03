@@ -1,35 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'react-bootstrap';
 import { getCollection } from '../../firebase/firestoreService';
+import type { Medicament, Retour, Sortie } from '../../types';
 
 const StockReport: React.FC = () => {
-  const [stockData, setStockData] = useState<any[]>([]);
+  const [stockData, setStockData] = useState<Array<{
+    id: string;
+    nom: string;
+    prix: number;
+    type: string;
+    presentation: string;
+    totalEntrees: number;
+    totalSorties: number;
+    totalRetours: number;
+    currentStock: number;
+  }>>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const allMedicaments = await getCollection('medicaments');
-      const allStockEntries = await getCollection('stock');
-      const allSorties = await getCollection('sorties');
-      const allRetours = await getCollection('retour');
-      const allStockAdjustments = await getCollection('stock_adjustments');
+      const allMedicaments = await getCollection<Medicament>('medicaments');
+      const allStockEntries = await getCollection<{ id: string; article_id: string; quantite?: number }>('stock');
+      const allSorties = await getCollection<Sortie>('sorties');
+      const allRetours = await getCollection<Retour>('retour');
+      const allStockAdjustments = await getCollection<{ id: string; article_id: string; quantite_ajustee?: number }>('stock_adjustments');
 
-      const calculatedStockData = allMedicaments.map((medicament: any) => {
+      const calculatedStockData = allMedicaments.map((medicament) => {
         const totalEntrees = allStockEntries
-          .filter((entry: any) => entry.article_id === medicament.id)
-          .reduce((sum: number, entry: any) => sum + (entry.quantite || 0), 0);
+          .filter((entry) => entry.article_id === medicament.id)
+          .reduce((sum, entry) => sum + (entry.quantite || 0), 0);
 
         const totalSorties = allSorties
-          .flatMap((sortie: any) => sortie.articles || [])
-          .filter((detail: any) => detail.article_id === medicament.id)
-          .reduce((sum: number, detail: any) => sum + (detail.quantite || 0), 0);
+          .flatMap((sortie) => sortie.articles || [])
+          .filter((detail) => detail.article_id === medicament.id)
+          .reduce((sum, detail) => sum + (detail.quantite || 0), 0);
 
         const totalRetours = allRetours
-          .filter((retour: any) => retour.article_id === medicament.id)
-          .reduce((sum: number, retour: any) => sum + (retour.quantite || 0), 0);
+          .filter((retour) => retour.article_id === medicament.id)
+          .reduce((sum, retour) => sum + (retour.quantite || 0), 0);
 
         const totalAdjustments = allStockAdjustments
-          .filter((adjustment: any) => adjustment.article_id === medicament.id)
-          .reduce((sum: number, adjustment: any) => sum + (adjustment.quantite_ajustee || 0), 0);
+          .filter((adjustment) => adjustment.article_id === medicament.id)
+          .reduce((sum, adjustment) => sum + (adjustment.quantite_ajustee || 0), 0);
 
         const currentStock = totalEntrees - totalSorties + totalRetours + totalAdjustments;
 

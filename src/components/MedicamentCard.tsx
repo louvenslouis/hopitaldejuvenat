@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import './Card.css';
 
+type MedicamentRow = [string, string, number, string, string, number];
+
 interface MedicamentCardProps {
-  medicament: any;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  medicament: MedicamentRow;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const MedicamentCard: React.FC<MedicamentCardProps> = ({ medicament, onEdit, onDelete }) => {

@@ -27,7 +27,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('medicaments') as Medicament[];
+      const medicamentsData = await getCollection<Medicament>('medicaments');
       setMedicaments(medicamentsData);
     };
     if (show) {

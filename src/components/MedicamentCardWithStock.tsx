@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import { getDocument } from '../firebase/firestoreService';
 import AdjustStockModal from './AdjustStockModal';
@@ -22,10 +22,10 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
   const lot = medicament.lot;
   const expirationDate = medicament.expiration_date;
 
-  const fetchStock = async () => {
+  const fetchStock = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fetchedMedicament = await getDocument('medicaments', medicamentId) as Medicament;
+      const fetchedMedicament = await getDocument<Medicament>('medicaments', medicamentId);
       if (fetchedMedicament) {
         setStock(fetchedMedicament.quantite_en_stock);
       }
@@ -36,11 +36,11 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
     finally {
       setIsLoading(false);
     }
-  };
+  }, [medicamentId]);
 
   useEffect(() => {
     fetchStock();
-  }, [medicamentId]);
+  }, [fetchStock]);
 
   if (isLoading) {
     return (

@@ -1,6 +1,7 @@
 import { getCollection } from '../firebase/firestoreService';
 
-type CollectionData = Record<string, any[]>;
+type CollectionRow = { id: string } & Record<string, unknown>;
+type CollectionData = Record<string, CollectionRow[]>;
 
 const COLLECTIONS = [
   { key: 'medicaments', label: 'medicaments' },
@@ -31,7 +32,7 @@ const escapeCsvValue = (value: unknown) => {
   return raw;
 };
 
-const computeHeaders = (rows: any[]) => {
+const computeHeaders = (rows: CollectionRow[]) => {
   const headerSet = new Set<string>();
   rows.forEach((row) => {
     Object.keys(row || {}).forEach((key) => headerSet.add(key));
@@ -42,7 +43,7 @@ const computeHeaders = (rows: any[]) => {
 export const fetchAllCollections = async (): Promise<CollectionData> => {
   const results = await Promise.all(
     COLLECTIONS.map(async (c) => {
-      const data = await getCollection(c.key);
+      const data = await getCollection<CollectionRow>(c.key);
       return [c.key, data] as const;
     })
   );

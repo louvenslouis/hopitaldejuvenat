@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddMedicamentModal from '../../components/AddMedicamentModal';
@@ -6,25 +6,26 @@ import EditMedicamentModal from '../../components/EditMedicamentModal';
 import MedicamentCardWithStock from '../../components/MedicamentCardWithStock';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import type { Medicament } from '../../types';
 
 const Medicaments: React.FC = () => {
-  const [medicaments, setMedicaments] = useState<any[]>([]);
+  const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMedicamentId, setSelectedMedicamentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = async () => {
-    const allMedicaments = await getCollection('medicaments');
-    const filteredMedicaments = allMedicaments.filter((m: any) => 
+  const fetchData = useCallback(async () => {
+    const allMedicaments = await getCollection<Medicament>('medicaments');
+    const filteredMedicaments = allMedicaments.filter((m) =>
       m.nom.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setMedicaments(filteredMedicaments);
-  };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm]);
+  }, [fetchData]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce médicament ?")) {
@@ -47,10 +48,13 @@ const Medicaments: React.FC = () => {
   };
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    (doc as any).autoTable({
+    type JsPdfWithAutoTable = jsPDF & {
+      autoTable: (options: { head: string[][]; body: Array<Array<string | number>> }) => void;
+    };
+    const doc = new jsPDF() as JsPdfWithAutoTable;
+    doc.autoTable({
       head: [['Nom', 'Quantité en Stock']],
-      body: medicaments.map(m => [m.nom, m.quantite_en_stock]),
+      body: medicaments.map((m) => [m.nom, m.quantite_en_stock]),
     });
     doc.save('medicaments.pdf');
   };

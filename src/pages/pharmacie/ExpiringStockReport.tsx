@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form } from 'react-bootstrap';
 import { getCollection } from '../../firebase/firestoreService';
+import type { Medicament } from '../../types';
 
 const ExpiringStockReport: React.FC = () => {
-  const [expiringStock, setExpiringStock] = useState<any[]>([]);
+  const [expiringStock, setExpiringStock] = useState<Array<Medicament & { expiration_date: string }>>([]);
   const [days, setDays] = useState(30);
 
   useEffect(() => {
     const fetchData = async () => {
-      const allMedicaments = await getCollection('medicaments');
+      const allMedicaments = await getCollection<Medicament>('medicaments');
       const dateLimit = new Date();
       dateLimit.setDate(dateLimit.getDate() + days);
 
-      const filteredExpiringStock = allMedicaments.filter((med: any) => 
-        med.expiration_date && new Date(med.expiration_date) <= dateLimit
-      ).sort((a: any, b: any) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
+      const filteredExpiringStock = allMedicaments
+        .filter((med): med is Medicament & { expiration_date: string } => {
+          if (!med.expiration_date) return false;
+          return new Date(med.expiration_date) <= dateLimit;
+        })
+        .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
 
       setExpiringStock(filteredExpiringStock);
     };

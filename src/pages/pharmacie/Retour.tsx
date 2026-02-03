@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup, Table, ButtonGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddRetourModal from '../../components/AddRetourModal';
 import EditRetourModal from '../../components/EditRetourModal';
 import RetourCard from '../../components/RetourCard';
-import type { Medicament } from '../../types';
+import type { Medicament, Retour as RetourType } from '../../types';
 
 const Retour: React.FC = () => {
-  const [retours, setRetours] = useState<any[]>([]);
+  const [retours, setRetours] = useState<RetourType[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRetourId, setSelectedRetourId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'history' | 'cards'>('history');
 
-  const fetchData = async () => {
-    const allRetours = await getCollection('retour');
-    const allMedicaments = await getCollection('medicaments') as Medicament[];
+  const fetchData = useCallback(async () => {
+    const allRetours = await getCollection<RetourType>('retour');
+    const allMedicaments = await getCollection<Medicament>('medicaments');
 
-    const enrichedRetours = allRetours.map((retour: any) => {
-      const medicament = allMedicaments.find((med: Medicament) => med.id === retour.article_id);
+    const enrichedRetours = allRetours.map((retour) => {
+      const medicament = allMedicaments.find((med) => med.id === retour.article_id);
       return { ...retour, nom: medicament ? medicament.nom : 'Inconnu' };
     });
 
-    const filteredRetours = enrichedRetours.filter((r: any) => 
-      r.nom.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredRetours = enrichedRetours.filter((r) =>
+      (r.nom || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    setRetours(filteredRetours.sort((a: any, b: any) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
-  };
+    setRetours(filteredRetours.sort((a, b) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm]);
+  }, [fetchData]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce retour ?")) {
@@ -101,7 +101,7 @@ const Retour: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {retours.map((retour: any) => (
+              {retours.map((retour) => (
                 <tr key={retour.id}>
                   <td>{new Date(retour.date_enregistrement).toLocaleString('fr-HT')}</td>
                   <td>{retour.nom}</td>
@@ -120,7 +120,7 @@ const Retour: React.FC = () => {
         </div>
       ) : (
         <div className="card-grid">
-          {retours.map((retour: any) => (
+          {retours.map((retour) => (
             <RetourCard key={retour.id} retour={retour} onEdit={handleEdit} onDelete={handleDelete} />
           ))}
         </div>

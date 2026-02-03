@@ -1,8 +1,9 @@
 import React from 'react';
 import { Table } from 'react-bootstrap';
+import type { Sortie } from '../../types';
 
 interface RecentSortiesTableProps {
-  data: any[];
+  data: Sortie[];
 }
 
 const RecentSortiesTable: React.FC<RecentSortiesTableProps> = ({ data }) => {
@@ -17,8 +18,8 @@ const RecentSortiesTable: React.FC<RecentSortiesTableProps> = ({ data }) => {
         </tr>
       </thead>
       <tbody>
-        {data.map((sortie, index) => (
-          <tr key={index}>
+        {data.map((sortie) => (
+          <tr key={sortie.id ?? sortie.date_sortie}>
             <td>{new Date(sortie.date_sortie).toLocaleDateString()}</td>
             <td>{sortie.service}</td>
             <td>{sortie.employe}</td>

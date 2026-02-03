@@ -1,8 +1,13 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+interface SortiesPerDayPoint {
+  date: string;
+  count: number;
+}
+
 interface SortiesPerDayChartProps {
-  data: any[];
+  data: SortiesPerDayPoint[];
 }
 
 const SortiesPerDayChart: React.FC<SortiesPerDayChartProps> = ({ data }) => {

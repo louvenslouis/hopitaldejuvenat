@@ -1,19 +1,7 @@
-import React, { createContext, useState, useContext, type ReactNode, useEffect, useRef } from 'react';
+import React, { useState, type ReactNode, useEffect, useRef } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-
-interface User {
-  id: string;
-  nom: string;
-}
-
-interface UserContextType {
-  personnel: User[];
-  activeUser: User | null;
-  setActiveUser: (user: User | null) => void;
-}
-
-const UserContext = createContext<UserContextType | undefined>(undefined);
+import { UserContext, type User } from './UserContextBase';
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [personnel, setPersonnel] = useState<User[]>([]);
@@ -61,12 +49,4 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {children}
     </UserContext.Provider>
   );
-};
-
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
 };

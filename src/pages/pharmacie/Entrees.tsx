@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, ListGroup, Table, ButtonGroup } from 'react-bootstrap';
 import { getCollection, addDocument, updateDocument } from '../../firebase/firestoreService';
 import EntreeCard from '../../components/EntreeCard';
-import type { Medicament } from '../../types';
+import type { Entree, Medicament } from '../../types';
 
 const Entrees: React.FC = () => {
-  const [entrees, setEntrees] = useState<any[]>([]);
+  const [entrees, setEntrees] = useState<Entree[]>([]);
   const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [selectedMedicament, setSelectedMedicament] = useState<string | undefined>();
   const [medicamentSearchTerm, setMedicamentSearchTerm] = useState('');
@@ -15,14 +15,14 @@ const Entrees: React.FC = () => {
   const [viewMode, setViewMode] = useState<'history' | 'cards'>('history');
 
   const fetchData = async () => {
-    const allEntrees = await getCollection('stock');
-    const allMedicaments = await getCollection('medicaments') as Medicament[];
+    const allEntrees = await getCollection<Entree>('stock');
+    const allMedicaments = await getCollection<Medicament>('medicaments');
 
-    const enrichedEntrees = allEntrees.map((entree: any) => {
+    const enrichedEntrees = allEntrees.map((entree) => {
       const medicament = allMedicaments.find((med: Medicament) => med.id === entree.article_id);
       return { ...entree, nom: medicament ? medicament.nom : 'Inconnu' };
     });
-    setEntrees(enrichedEntrees.sort((a: any, b: any) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
+    setEntrees(enrichedEntrees.sort((a, b) => new Date(b.date_enregistrement).getTime() - new Date(a.date_enregistrement).getTime()));
 
     setMedicaments(allMedicaments);
   };
@@ -140,7 +140,7 @@ const Entrees: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {entrees.map((entree: any) => (
+              {entrees.map((entree) => (
                 <tr key={entree.id}>
                   <td>{new Date(entree.date_enregistrement).toLocaleString('fr-HT')}</td>
                   <td>{entree.nom}</td>
@@ -160,7 +160,7 @@ const Entrees: React.FC = () => {
         </div>
       ) : (
         <div className="card-grid">
-          {entrees.map((entree: any) => (
+          {entrees.map((entree) => (
             <EntreeCard key={entree.id} entree={entree} />
           ))}
         </div>

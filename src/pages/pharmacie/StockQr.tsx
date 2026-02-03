@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from 'qrcode.react';
 import { getCollection } from '../../firebase/firestoreService';
@@ -21,7 +21,7 @@ const StockQr: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const data = await getCollection('medicaments') as Medicament[];
+    const data = await getCollection<Medicament>('medicaments');
     setItems(data);
     setLoading(false);
   };
@@ -48,7 +48,7 @@ const StockQr: React.FC = () => {
     return cols;
   }, [compactMode, includeLot, includeExpiration]);
 
-  const formatRow = (item: Medicament) => {
+  const formatRow = useCallback((item: Medicament) => {
     const values = [item.nom, String(item.quantite_en_stock ?? 0)];
     if (!compactMode) {
       if (includeLot) values.push(item.lot || '—');
@@ -57,7 +57,7 @@ const StockQr: React.FC = () => {
       }
     }
     return csvMode ? values.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',') : values.join(' | ');
-  };
+  }, [compactMode, csvMode, includeLot, includeExpiration]);
 
   const headerLines = useMemo(() => {
     if (csvMode) {
@@ -91,7 +91,7 @@ const StockQr: React.FC = () => {
       pages.push([...headerLines, ...current].join('\n'));
     }
     return pages;
-  }, [baseRows, headerLines]);
+  }, [baseRows, headerLines, formatRow]);
 
   const totalPages = chunks.length;
   const safePage = Math.min(Math.max(page, 1), Math.max(totalPages, 1));

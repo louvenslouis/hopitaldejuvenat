@@ -14,7 +14,7 @@ const StockRestant: React.FC = () => {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const fetchData = async () => {
-    const data = await getCollection('medicaments') as Medicament[];
+    const data = await getCollection<Medicament>('medicaments');
     const mapped = data.map((med) => ({
       ...med,
       currentStock: med.quantite_en_stock ?? 0,
@@ -28,7 +28,7 @@ const StockRestant: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleFieldChange = (id: string, field: keyof StockRow, value: any) => {
+  const handleFieldChange = <K extends keyof StockRow>(id: string, field: K, value: StockRow[K]) => {
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
     );

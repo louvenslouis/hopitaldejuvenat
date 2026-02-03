@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddPatientModal from '../../components/AddPatientModal';
 import EditPatientModal from '../../components/EditPatientModal';
 import PatientCard from '../../components/PatientCard';
+import type { Patient } from '../../types';
 
 const Patients: React.FC = () => {
-  const [patients, setPatients] = useState<any[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const collectionName = 'patients';
-    const allPatients = await getCollection(collectionName);
-    const filteredPatients = allPatients.filter((p: any) => 
+    const allPatients = await getCollection<Patient>(collectionName);
+    const filteredPatients = allPatients.filter((p) =>
       `${p.prenom} ${p.nom}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setPatients(filteredPatients);
-  };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm]);
+  }, [fetchData]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce patient ?")) {

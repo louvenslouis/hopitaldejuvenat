@@ -36,13 +36,13 @@ const SortiesEditor: React.FC = () => {
   const fetchData = async () => {
     const collectionName = 'patients';
     const [sortiesData, patientsData, medicamentsData] = await Promise.all([
-      getCollection('sorties'),
-      getCollection(collectionName),
-      getCollection('medicaments'),
+      getCollection<Sortie>('sorties'),
+      getCollection<Patient>(collectionName),
+      getCollection<Medicament>('medicaments'),
     ]);
-    setSorties(sortiesData as Sortie[]);
-    setPatients(patientsData as Patient[]);
-    setMedicaments(medicamentsData as Medicament[]);
+    setSorties(sortiesData);
+    setPatients(patientsData);
+    setMedicaments(medicamentsData);
   };
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const SortiesEditor: React.FC = () => {
       .join(', ');
   };
 
-  const handleFieldChange = (id: string, field: keyof Sortie, value: any) => {
+  const handleFieldChange = <K extends keyof Sortie>(id: string, field: K, value: Sortie[K]) => {
     setSorties((prev) =>
       prev.map((sortie) => (sortie.id === id ? { ...sortie, [field]: value } : sortie))
     );

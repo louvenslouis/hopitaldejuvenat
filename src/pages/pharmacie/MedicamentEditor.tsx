@@ -18,7 +18,7 @@ const MedicamentEditor: React.FC = () => {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const fetchData = async () => {
-    const data = await getCollection('medicaments') as Medicament[];
+    const data = await getCollection<Medicament>('medicaments');
     setMedicaments(data);
   };
 
@@ -26,7 +26,7 @@ const MedicamentEditor: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleFieldChange = (id: string, field: keyof Medicament, value: any) => {
+  const handleFieldChange = <K extends keyof Medicament>(id: string, field: K, value: Medicament[K]) => {
     setMedicaments((prev) =>
       prev.map((med) => (med.id === id ? { ...med, [field]: value } : med))
     );

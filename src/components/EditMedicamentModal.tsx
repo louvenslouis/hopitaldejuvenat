@@ -23,7 +23,7 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   useEffect(() => {
     const fetchMedicament = async () => {
       if (medicamentId) {
-        const medicament = await getDocument('medicaments', medicamentId) as Medicament;
+        const medicament = await getDocument<Medicament>('medicaments', medicamentId);
         if (medicament) {
           setNom(medicament.nom);
           setPrix(medicament.prix);

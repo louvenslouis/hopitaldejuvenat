@@ -9,7 +9,7 @@ const StockPublic: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const data = await getCollection('medicaments') as Medicament[];
+    const data = await getCollection<Medicament>('medicaments');
     setItems(data);
     setLoading(false);
   };

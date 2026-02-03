@@ -4,7 +4,7 @@ import { addDocument, getCollection, getDocument, updateDocument } from '../fire
 import type { Medicament, Patient } from '../types';
 import AddPatientModal from './AddPatientModal';
 import AddMedicamentModal from './AddMedicamentModal';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useUser';
 
 interface AddSortieModalProps {
   show: boolean;
@@ -22,7 +22,16 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [employe, setEmploye] = useState('');
   const [chambre, setChambre] = useState<number | undefined>();
   const [memo, setMemo] = useState('');
-  const [articles, setArticles] = useState<any[]>([{ article_id: undefined, quantite: 1, searchTerm: '', showResults: false }]);
+  type ArticleDraft = {
+    article_id?: string;
+    quantite: number;
+    searchTerm: string;
+    showResults: boolean;
+  };
+
+  const [articles, setArticles] = useState<ArticleDraft[]>([
+    { article_id: undefined, quantite: 1, searchTerm: '', showResults: false },
+  ]);
   const [stockError, setStockError] = useState<string | null>(null);
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
   const [showAddMedicamentModal, setShowAddMedicamentModal] = useState(false);
@@ -50,9 +59,9 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
   const fetchData = async () => {
     const patientCollection = 'patients';
-    const patientsData = await getCollection(patientCollection) as Patient[];
+    const patientsData = await getCollection<Patient>(patientCollection);
     setPatients(patientsData);
-    const medicamentsData = await getCollection('medicaments') as Medicament[];
+    const medicamentsData = await getCollection<Medicament>('medicaments');
     setMedicaments(medicamentsData);
   };
 
@@ -69,7 +78,11 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     }
   }, [service]);
 
-  const handleArticleChange = (index: number, field: string, value: any) => {
+  const handleArticleChange = <K extends keyof ArticleDraft>(
+    index: number,
+    field: K,
+    value: ArticleDraft[K]
+  ) => {
     const newArticles = [...articles];
     newArticles[index][field] = value;
     if (field === 'searchTerm') {
@@ -116,7 +129,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
     }
 
     // Validate at least one article
-    const validArticles = articles.filter(article => article.article_id && article.quantite > 0);
+    const validArticles = articles.filter(
+      (article): article is ArticleDraft & { article_id: string } =>
+        Boolean(article.article_id) && article.quantite > 0
+    );
     if (validArticles.length === 0) {
       setStockError("Veuillez ajouter au moins un article avec une quantité valide.");
       return;
@@ -124,7 +140,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
     // Perform stock check and update
     for (const article of validArticles) {
-      const medicament = await getDocument('medicaments', article.article_id) as Medicament;
+      const medicament = await getDocument<Medicament>('medicaments', article.article_id);
       if (!medicament) {
         setStockError(`Médicament ${article.searchTerm} introuvable.`);
         return;

@@ -22,7 +22,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
     if (patientId) {
       const fetchPatient = async () => {
         const collectionName = 'patients';
-        const patient = await getDocument(collectionName, patientId) as Patient;
+        const patient = await getDocument<Patient>(collectionName, patientId);
         if (patient) {
           setPrenom(patient.prenom);
           setNom(patient.nom);

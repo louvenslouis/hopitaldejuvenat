@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Dropdown, Button } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useUser';
 import { useSyncStatus } from '../hooks/useSyncStatus';
 import { clearFirestoreCache, requestFirestoreRefresh } from '../firebase/firestoreService';
 

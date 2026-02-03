@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import './Card.css';
 
+type StockAdjustmentStatus = 'synced' | 'pending_create' | 'pending_update' | 'pending_delete';
+type StockAdjustmentRow = [string, string, number, string, string, StockAdjustmentStatus];
+
 interface StockAdjustmentCardProps {
-  adjustment: any;
+  adjustment: StockAdjustmentRow;
 }
 
 const StockAdjustmentCard: React.FC<StockAdjustmentCardProps> = ({ adjustment }) => {
