@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/hopitaldejuvenat/',
   plugins: [react()],
+  build: {
+    outDir: 'docs',
+    emptyOutDir: true,
+  },
 })
