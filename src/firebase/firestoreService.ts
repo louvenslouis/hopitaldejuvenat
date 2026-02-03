@@ -124,13 +124,25 @@ export const getCollection = async <T extends FirestoreDoc = FirestoreDoc>(
   const force = (options?.force ?? false) || shouldForceRefresh();
   const cached = collectionCache.get(collectionName);
   if (!force && hasCache(cached)) {
-    if (shouldUseNetwork() && !isCacheFresh(cached)) {
-      getDocs(collection(db, collectionName))
-        .then((querySnapshot) => {
+    if (shouldUseNetwork()) {
+      const shouldRefreshNow = cached.data.length <= 1 || !isCacheFresh(cached);
+      if (shouldRefreshNow) {
+        try {
+          const querySnapshot = await getDocs(collection(db, collectionName));
           const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as T[];
           updateCollectionCache(collectionName, data);
-        })
-        .catch(() => undefined);
+          return data;
+        } catch {
+          // Fall back to cached data
+        }
+      } else {
+        getDocs(collection(db, collectionName))
+          .then((querySnapshot) => {
+            const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as T[];
+            updateCollectionCache(collectionName, data);
+          })
+          .catch(() => undefined);
+      }
     }
     return cached.data as T[];
   }
@@ -178,7 +190,7 @@ export const getDocument = async <T extends FirestoreDoc = FirestoreDoc>(
   const key = makeDocKey(collectionName, id);
   const cachedDoc = documentCache.get(key);
   if (!force && hasCache(cachedDoc)) {
-    if (shouldUseNetwork() && !isCacheFresh(cachedDoc)) {
+    if (shouldUseNetwork() && (!isCacheFresh(cachedDoc) || cachedDoc.data === undefined)) {
       const docRef = doc(db, collectionName, id);
       getDoc(docRef)
         .then((docSnap) => {

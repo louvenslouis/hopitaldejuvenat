@@ -274,7 +274,8 @@ main.main-content {
 }
 
 .search-group {
-  width: 320px;
+  width: 100%;
+  max-width: 360px;
 }
 
 /* Card improvements */
@@ -329,6 +330,26 @@ main.main-content {
 }
 
 /* Responsive adjustments */
+@media (max-width: 992px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .header-right-section {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .main-content-area {
+    padding-top: 110px;
+  }
+}
+
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
@@ -350,7 +371,7 @@ main.main-content {
   }
 
   main.main-content {
-    padding-top: 1rem; /* Adjust padding for header */
+    padding: 1rem; /* Adjust padding for header */
   }
 
   .card-grid {
@@ -359,6 +380,29 @@ main.main-content {
 
   .search-group {
     width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .hospital-name {
+    font-size: 1rem;
+  }
+
+  .hospital-subtitle {
+    display: none;
+  }
+
+  .sync-status-header {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .user-info .dropdown-toggle {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .form-section {
+    padding: 12px;
   }
 }
 

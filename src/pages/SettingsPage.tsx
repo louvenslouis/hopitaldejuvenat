@@ -3,6 +3,7 @@ import { Button, Form, Card, ListGroup, Row, Col, Badge } from 'react-bootstrap'
 import { Link } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { setFirestoreNetworkEnabled } from '../firebase';
+import { clearFirestoreCache, requestFirestoreRefresh } from '../firebase/firestoreService';
 import { fetchAllCollections, buildCsvFiles, buildSqlExport, downloadTextFile } from '../utils/export';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 
@@ -60,6 +61,20 @@ const SettingsPage: React.FC = () => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleClearCache = async () => {
+    clearFirestoreCache();
+    requestFirestoreRefresh();
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      } catch {
+        // Non-blocking
+      }
+    }
+    window.location.reload();
   };
 
 
@@ -185,6 +200,18 @@ const SettingsPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      <Card className="mt-4">
+        <Card.Body>
+          <Card.Title>Maintenance</Card.Title>
+          <p className="text-muted mb-3">
+            Efface le cache local et force un rechargement complet des données.
+          </p>
+          <Button variant="outline-danger" onClick={handleClearCache}>
+            Vider le cache
+          </Button>
+        </Card.Body>
+      </Card>
     </div>
   );
 };
