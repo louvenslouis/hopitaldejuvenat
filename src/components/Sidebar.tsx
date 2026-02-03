@@ -54,6 +54,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       <NavLink to="/pharmacie/expiring-stock-report" className="nav-link">
         <span className="material-icons">warning</span> <span>Stock Expirant</span>
       </NavLink>
+      <NavLink to="/settings" className="nav-link">
+        <span className="material-icons">settings</span> <span>Paramètres</span>
+      </NavLink>
     </Nav>
   );
 };

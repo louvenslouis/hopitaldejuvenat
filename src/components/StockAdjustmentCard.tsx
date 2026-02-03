@@ -27,10 +27,19 @@ const StockAdjustmentCard: React.FC<StockAdjustmentCardProps> = ({ adjustment })
           <hr />
           <p><span className="material-icons">help_outline</span> Raison: {adjustment[3]}</p>
           <p>
-              Statut Sync: {adjustment[5] === 'synced' && <span title="Synchronisé">✅</span>}
-              {adjustment[5] === 'pending_create' && <span title="En attente de création">⬆️</span>}
-              {adjustment[5] === 'pending_update' && <span title="En attente de mise à jour">🔄</span>}
-              {adjustment[5] === 'pending_delete' && <span title="En attente de suppression">🗑️</span>}
+              Statut Sync:
+              {adjustment[5] === 'synced' && (
+                <span className="material-icons text-success ms-2" title="Synchronisé">check_circle</span>
+              )}
+              {adjustment[5] === 'pending_create' && (
+                <span className="material-icons text-warning ms-2" title="En attente de création">cloud_upload</span>
+              )}
+              {adjustment[5] === 'pending_update' && (
+                <span className="material-icons text-primary ms-2" title="En attente de mise à jour">sync</span>
+              )}
+              {adjustment[5] === 'pending_delete' && (
+                <span className="material-icons text-danger ms-2" title="En attente de suppression">delete</span>
+              )}
           </p>
         </div>
       )}

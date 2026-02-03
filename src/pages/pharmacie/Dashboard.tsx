@@ -108,7 +108,7 @@ const Dashboard: React.FC = () => {
 
       {lowStock.length > 0 && (
         <Alert variant="warning" className="mt-4">
-          <h5>⚠️ Médicaments à faible stock:</h5>
+          <h5><span className="material-icons me-1">warning</span>Médicaments à faible stock:</h5>
           <ul>
             {lowStock.map((med: Medicament) => (
               <li key={med.id}>{med.nom} (Stock: {med.quantite_en_stock})</li>
