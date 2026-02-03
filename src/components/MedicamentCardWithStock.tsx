@@ -25,7 +25,7 @@ const MedicamentCardWithStock: React.FC<MedicamentCardWithStockProps> = ({ medic
   const fetchStock = async () => {
     setIsLoading(true);
     try {
-      const fetchedMedicament = await getDocument('liste_medicaments', medicamentId) as Medicament;
+      const fetchedMedicament = await getDocument('medicaments', medicamentId) as Medicament;
       if (fetchedMedicament) {
         setStock(fetchedMedicament.quantite_en_stock);
       }

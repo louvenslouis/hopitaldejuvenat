@@ -8,7 +8,7 @@ const ExpiringStockReport: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const allMedicaments = await getCollection('liste_medicaments');
+      const allMedicaments = await getCollection('medicaments');
       const dateLimit = new Date();
       dateLimit.setDate(dateLimit.getDate() + days);
 

@@ -39,7 +39,7 @@ const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ show, onHide, onSuc
       });
 
       // Update medicament stock
-      await updateDocument('liste_medicaments', medicamentId, { quantite_en_stock: currentStock + adjustment });
+      await updateDocument('medicaments', medicamentId, { quantite_en_stock: currentStock + adjustment });
 
       onSuccess();
       onHide();

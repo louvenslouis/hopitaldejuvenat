@@ -49,9 +49,10 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   };
 
   const fetchData = async () => {
-    const patientsData = await getCollection('patient') as Patient[];
+    const patientCollection = 'patients';
+    const patientsData = await getCollection(patientCollection) as Patient[];
     setPatients(patientsData);
-    const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
+    const medicamentsData = await getCollection('medicaments') as Medicament[];
     setMedicaments(medicamentsData);
   };
 
@@ -123,7 +124,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
 
     // Perform stock check and update
     for (const article of validArticles) {
-      const medicament = await getDocument('liste_medicaments', article.article_id) as Medicament;
+      const medicament = await getDocument('medicaments', article.article_id) as Medicament;
       if (!medicament) {
         setStockError(`Médicament ${article.searchTerm} introuvable.`);
         return;
@@ -135,7 +136,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
         return;
       }
       // Update stock in Firestore
-      await updateDocument('liste_medicaments', medicament.id, { quantite_en_stock: currentStock - article.quantite });
+      await updateDocument('medicaments', medicament.id, { quantite_en_stock: currentStock - article.quantite });
     }
 
     const newSortie = {

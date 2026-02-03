@@ -16,7 +16,7 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
+      const medicamentsData = await getCollection('medicaments') as Medicament[];
       setMedicaments(medicamentsData);
     };
     if (show) {
@@ -39,7 +39,7 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
       const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
         const currentStock = medicament.quantite_en_stock ?? 0;
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
+        await updateDocument('medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
       }
 
       onSuccess();

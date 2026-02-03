@@ -13,7 +13,8 @@ const Patients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
-    const allPatients = await getCollection('patient');
+    const collectionName = 'patients';
+    const allPatients = await getCollection(collectionName);
     const filteredPatients = allPatients.filter((p: any) => 
       `${p.prenom} ${p.nom}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -26,7 +27,8 @@ const Patients: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce patient ?")) {
-      await deleteDocument('patient', id);
+      const collectionName = 'patients';
+      await deleteDocument(collectionName, id);
       fetchData();
     }
   };

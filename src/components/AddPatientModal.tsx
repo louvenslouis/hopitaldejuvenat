@@ -39,7 +39,8 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ show, onHide, onSucce
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    await addDocument('patient', newPatient);
+    const collectionName = 'patients';
+    await addDocument(collectionName, newPatient);
     onSuccess();
     onHide();
     resetForm();

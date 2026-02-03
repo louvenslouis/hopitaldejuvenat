@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       // Expiring soon (in the next 30 days)
-      const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
+      const allMedicaments = await getCollection('medicaments') as Medicament[];
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
       setExpiringSoon(allMedicaments.filter((med: Medicament) => med.expiration_date && new Date(med.expiration_date) <= thirtyDaysFromNow));
@@ -67,7 +67,8 @@ const Dashboard: React.FC = () => {
       setSortiesPerDay(sortedDailySorties);
 
       // Recent 5 sorties
-      const allPatients = await getCollection('patient') as Patient[];
+      const collectionName = 'patients';
+      const allPatients = await getCollection(collectionName) as Patient[];
       const recentSortiesData = allSorties
         .sort((a: any, b: any) => new Date(b.date_sortie).getTime() - new Date(a.date_sortie).getTime())
         .slice(0, 5)

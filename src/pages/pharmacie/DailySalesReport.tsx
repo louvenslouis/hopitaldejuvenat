@@ -9,7 +9,7 @@ const DailySalesReport: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       const allSorties = await getCollection('sorties');
-      const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
+      const allMedicaments = await getCollection('medicaments') as Medicament[];
 
       const salesByDate: { [key: string]: number } = {};
 

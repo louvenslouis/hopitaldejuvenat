@@ -3,8 +3,8 @@ import { getCollection } from '../firebase/firestoreService';
 type CollectionData = Record<string, any[]>;
 
 const COLLECTIONS = [
-  { key: 'liste_medicaments', label: 'medicaments' },
-  { key: 'patient', label: 'patients' },
+  { key: 'medicaments', label: 'medicaments' },
+  { key: 'patients', label: 'patients' },
   { key: 'sorties', label: 'sorties' },
   { key: 'stock', label: 'entrees_stock' },
   { key: 'retour', label: 'retours' },

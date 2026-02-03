@@ -7,9 +7,9 @@ const StockReport: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const allMedicaments = await getCollection('liste_medicaments');
+      const allMedicaments = await getCollection('medicaments');
       const allStockEntries = await getCollection('stock');
-      const allSortieDetails = await getCollection('sorties_details');
+      const allSorties = await getCollection('sorties');
       const allRetours = await getCollection('retour');
       const allStockAdjustments = await getCollection('stock_adjustments');
 
@@ -18,7 +18,8 @@ const StockReport: React.FC = () => {
           .filter((entry: any) => entry.article_id === medicament.id)
           .reduce((sum: number, entry: any) => sum + (entry.quantite || 0), 0);
 
-        const totalSorties = allSortieDetails
+        const totalSorties = allSorties
+          .flatMap((sortie: any) => sortie.articles || [])
           .filter((detail: any) => detail.article_id === medicament.id)
           .reduce((sum: number, detail: any) => sum + (detail.quantite || 0), 0);
 

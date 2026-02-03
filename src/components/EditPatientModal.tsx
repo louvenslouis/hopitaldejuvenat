@@ -21,7 +21,8 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
   useEffect(() => {
     if (patientId) {
       const fetchPatient = async () => {
-        const patient = await getDocument('patient', patientId) as Patient;
+        const collectionName = 'patients';
+        const patient = await getDocument(collectionName, patientId) as Patient;
         if (patient) {
           setPrenom(patient.prenom);
           setNom(patient.nom);
@@ -47,7 +48,8 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ show, onHide, onSuc
         telephone: telephone,
         updated_at: new Date().toISOString(),
       };
-      await updateDocument('patient', patientId, updatedPatient);
+      const collectionName = 'patients';
+      await updateDocument(collectionName, patientId, updatedPatient);
       onSuccess();
       onHide();
     }

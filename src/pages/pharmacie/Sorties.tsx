@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, InputGroup } from 'react-bootstrap';
+import { Button, Form, InputGroup, Table, ButtonGroup } from 'react-bootstrap';
 import { getCollection, deleteDocument } from '../../firebase/firestoreService';
 import AddSortieModal from '../../components/AddSortieModal';
 import SortieCard from '../../components/SortieCard';
@@ -9,11 +9,13 @@ const Sorties: React.FC = () => {
   const [sorties, setSorties] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'history' | 'cards'>('history');
 
   const fetchData = async () => {
     const allSorties = await getCollection('sorties');
-    const allPatients = await getCollection('patient') as Patient[];
-    const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
+    const collectionName = 'patients';
+    const allPatients = await getCollection(collectionName) as Patient[];
+    const allMedicaments = await getCollection('medicaments') as Medicament[];
 
     const enrichedSorties = allSorties.map((sortie: any) => {
       const patient = allPatients.find((p: Patient) => p.id === sortie.patient_id);
@@ -82,11 +84,65 @@ const Sorties: React.FC = () => {
           )}
         </InputGroup>
       </div>
-      <div className="card-grid">
-        {sorties.map((sortie: any) => (
-          <SortieCard key={sortie.id} sortie={sortie} onDelete={handleDelete} />
-        ))}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 className="mb-0">Historique</h4>
+        <ButtonGroup size="sm">
+          <Button
+            variant={viewMode === 'history' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewMode('history')}
+          >
+            Historique
+          </Button>
+          <Button
+            variant={viewMode === 'cards' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewMode('cards')}
+          >
+            Cartes
+          </Button>
+        </ButtonGroup>
       </div>
+
+      {viewMode === 'history' ? (
+        <div className="airtable-scroll">
+          <Table className="airtable-table" bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Service</th>
+                <th>Employé</th>
+                <th>Chambre</th>
+                <th>Médicaments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorties.map((sortie: any) => (
+                <tr key={sortie.id}>
+                  <td>{new Date(sortie.date_sortie).toLocaleString('fr-HT')}</td>
+                  <td>{sortie.patient_nom}</td>
+                  <td>{sortie.service}</td>
+                  <td>{sortie.employe}</td>
+                  <td>{sortie.chambre ?? '—'}</td>
+                  <td>{sortie.articles_summary}</td>
+                </tr>
+              ))}
+              {sorties.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center text-muted py-4">
+                    Aucune sortie trouvée.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </div>
+      ) : (
+        <div className="card-grid">
+          {sorties.map((sortie: any) => (
+            <SortieCard key={sortie.id} sortie={sortie} onDelete={handleDelete} />
+          ))}
+        </div>
+      )}
       <AddSortieModal show={showAddModal} onHide={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); fetchData(); }} />
     </div>
   );

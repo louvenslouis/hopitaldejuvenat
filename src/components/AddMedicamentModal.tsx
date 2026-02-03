@@ -43,7 +43,7 @@ const AddMedicamentModal: React.FC<AddMedicamentModalProps> = ({ show, onHide, o
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    const medicamentDocId = await addDocument('liste_medicaments', newMedicament);
+    const medicamentDocId = await addDocument('medicaments', newMedicament);
 
     if (initialStock > 0) {
         const reason = "Stock initial";

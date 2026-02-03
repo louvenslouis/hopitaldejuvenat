@@ -17,7 +17,7 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
 
   useEffect(() => {
     const fetchData = async () => {
-      const medicamentsData = await getCollection('liste_medicaments') as Medicament[];
+      const medicamentsData = await getCollection('medicaments') as Medicament[];
       setMedicaments(medicamentsData);
 
       if (retourId) {
@@ -41,7 +41,7 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
       if (oldRetour) {
         const oldMedicament = medicaments.find((m: Medicament) => m.id === oldRetour.article_id);
         if (oldMedicament) {
-          await updateDocument('liste_medicaments', oldMedicament.id, { quantite_en_stock: oldMedicament.quantite_en_stock - oldRetour.quantite });
+          await updateDocument('medicaments', oldMedicament.id, { quantite_en_stock: oldMedicament.quantite_en_stock - oldRetour.quantite });
         }
       }
 
@@ -55,7 +55,7 @@ const EditRetourModal: React.FC<EditRetourModalProps> = ({ show, onHide, onSucce
       // Update medicament stock (add new quantity)
       const newMedicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (newMedicament) {
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: newMedicament.quantite_en_stock + quantite });
+        await updateDocument('medicaments', selectedMedicament, { quantite_en_stock: newMedicament.quantite_en_stock + quantite });
       }
 
       onSuccess();

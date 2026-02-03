@@ -34,6 +34,31 @@
   align-items: center;
 }
 
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.25rem 1.5rem 0.5rem;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.sidebar-section-toggle .material-icons {
+  font-size: 1.1rem;
+}
+
+.sidebar-section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  padding: 0;
+}
+
 .service-name {
   color: white;
   font-size: 1.2rem;

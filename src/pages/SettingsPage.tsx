@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Card, ListGroup, Row, Col, Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { setFirestoreNetworkEnabled } from '../firebase';
 import { fetchAllCollections, buildCsvFiles, buildSqlExport, downloadTextFile } from '../utils/export';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
 const SettingsPage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -11,6 +13,7 @@ const SettingsPage: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [exportFormat, setExportFormat] = useState<'csv' | 'sql'>('csv');
   const [isExporting, setIsExporting] = useState(false);
+  const { canInstall, isInstalled, promptInstall } = usePwaInstall();
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGodModePin(e.target.value);
@@ -34,6 +37,7 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('offlineMode', offlineMode ? 'true' : 'false');
     setFirestoreNetworkEnabled(!offlineMode).catch(() => undefined);
+    window.dispatchEvent(new Event('offline-mode-changed'));
   }, [offlineMode]);
 
   const handleExport = async () => {
@@ -57,6 +61,7 @@ const SettingsPage: React.FC = () => {
       setIsExporting(false);
     }
   };
+
 
   return (
     <div>
@@ -129,6 +134,18 @@ const SettingsPage: React.FC = () => {
                     </Form.Text>
                   </Form.Group>
                 </ListGroup.Item>
+                <ListGroup.Item>
+                  <Form.Group>
+                    <Form.Label>Application installable</Form.Label>
+                    {isInstalled ? (
+                      <div className="text-success">Application déjà installée.</div>
+                    ) : (
+                      <Button variant="outline-primary" disabled={!canInstall} onClick={promptInstall}>
+                        {canInstall ? 'Installer l’application' : 'Installation indisponible'}
+                      </Button>
+                    )}
+                  </Form.Group>
+                </ListGroup.Item>
               </ListGroup>
             </Card.Body>
           </Card>
@@ -152,8 +169,10 @@ const SettingsPage: React.FC = () => {
           <Card>
             <Card.Body>
               <Card.Title>Gestion des Employés</Card.Title>
-              {/* Employee management UI will go here */}
-              <p>Bientôt disponible...</p>
+              <p>Ajoute et gère les utilisateurs de l’application.</p>
+              <Link to="/settings/users" className="btn btn-primary">
+                Ouvrir la gestion des utilisateurs
+              </Link>
             </Card.Body>
           </Card>
         </Col>

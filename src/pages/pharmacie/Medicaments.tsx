@@ -15,7 +15,7 @@ const Medicaments: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
-    const allMedicaments = await getCollection('liste_medicaments');
+    const allMedicaments = await getCollection('medicaments');
     const filteredMedicaments = allMedicaments.filter((m: any) => 
       m.nom.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -28,7 +28,7 @@ const Medicaments: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce médicament ?")) {
-      await deleteDocument('liste_medicaments', id);
+      await deleteDocument('medicaments', id);
       fetchData();
     }
   };

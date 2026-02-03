@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, ListGroup } from 'react-bootstrap';
+import { Button, Form, Row, Col, ListGroup, Table, ButtonGroup } from 'react-bootstrap';
 import { getCollection, addDocument, updateDocument } from '../../firebase/firestoreService';
 import EntreeCard from '../../components/EntreeCard';
 import type { Medicament } from '../../types';
@@ -12,10 +12,11 @@ const Entrees: React.FC = () => {
   const [showMedicamentResults, setShowMedicamentResults] = useState(false);
   const [quantite, setQuantite] = useState<number>(0);
   const [dateExpiration, setDateExpiration] = useState('');
+  const [viewMode, setViewMode] = useState<'history' | 'cards'>('history');
 
   const fetchData = async () => {
     const allEntrees = await getCollection('stock');
-    const allMedicaments = await getCollection('liste_medicaments') as Medicament[];
+    const allMedicaments = await getCollection('medicaments') as Medicament[];
 
     const enrichedEntrees = allEntrees.map((entree: any) => {
       const medicament = allMedicaments.find((med: Medicament) => med.id === entree.article_id);
@@ -52,7 +53,7 @@ const Entrees: React.FC = () => {
       const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
         const currentStock = medicament.quantite_en_stock ?? 0;
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
+        await updateDocument('medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
       }
 
       fetchData();
@@ -109,11 +110,61 @@ const Entrees: React.FC = () => {
         </Row>
       </Form>
 
-      <div className="card-grid">
-        {entrees.map((entree: any) => (
-          <EntreeCard key={entree.id} entree={entree} />
-        ))}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 className="mb-0">Historique</h4>
+        <ButtonGroup size="sm">
+          <Button
+            variant={viewMode === 'history' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewMode('history')}
+          >
+            Historique
+          </Button>
+          <Button
+            variant={viewMode === 'cards' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewMode('cards')}
+          >
+            Cartes
+          </Button>
+        </ButtonGroup>
       </div>
+
+      {viewMode === 'history' ? (
+        <div className="airtable-scroll">
+          <Table className="airtable-table" bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Médicament</th>
+                <th>Quantité</th>
+                <th>Expiration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entrees.map((entree: any) => (
+                <tr key={entree.id}>
+                  <td>{new Date(entree.date_enregistrement).toLocaleString('fr-HT')}</td>
+                  <td>{entree.nom}</td>
+                  <td className="text-center">{entree.quantite}</td>
+                  <td>{entree.date_expiration ? new Date(entree.date_expiration).toLocaleDateString('fr-HT') : '—'}</td>
+                </tr>
+              ))}
+              {entrees.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center text-muted py-4">
+                    Aucune entrée trouvée.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </div>
+      ) : (
+        <div className="card-grid">
+          {entrees.map((entree: any) => (
+            <EntreeCard key={entree.id} entree={entree} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

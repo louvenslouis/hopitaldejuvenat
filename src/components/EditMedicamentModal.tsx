@@ -23,7 +23,7 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
   useEffect(() => {
     const fetchMedicament = async () => {
       if (medicamentId) {
-        const medicament = await getDocument('liste_medicaments', medicamentId) as Medicament;
+        const medicament = await getDocument('medicaments', medicamentId) as Medicament;
         if (medicament) {
           setNom(medicament.nom);
           setPrix(medicament.prix);
@@ -50,7 +50,7 @@ const EditMedicamentModal: React.FC<EditMedicamentModalProps> = ({ show, onHide,
         expiration_date: expirationDate,
         updated_at: new Date().toISOString(),
       };
-      await updateDocument('liste_medicaments', medicamentId, updatedMedicament);
+      await updateDocument('medicaments', medicamentId, updatedMedicament);
 
       if (newStock !== undefined && newStock !== currentStock) {
         const adjustment = newStock - currentStock;
