@@ -130,6 +130,40 @@ main.main-content {
   padding: 2rem;
 }
 
+/* Typeahead search lists */
+.typeahead {
+  position: relative;
+}
+
+.typeahead-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1050;
+  background: white;
+  border: 1px solid var(--gray);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.typeahead-results .list-group-item {
+  cursor: pointer;
+}
+
+/* Table polish */
+.table {
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.search-group {
+  width: 320px;
+}
+
 /* Card improvements */
 .card-grid {
   display: grid;
@@ -167,6 +201,11 @@ main.main-content {
     position: relative;
   }
 
+  .app-header {
+    left: 0;
+    width: 100%;
+  }
+
   .main-content-area {
     margin-left: 0; /* Remove margin on small screens */
   }
@@ -177,6 +216,10 @@ main.main-content {
 
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .search-group {
+    width: 100%;
   }
 }
 
@@ -209,6 +252,17 @@ body.dark .form-control:focus {
 body.dark .list-group-item {
   background-color: #343a40;
   border-color: #495057;
+}
+
+body.dark .typeahead-results {
+  background-color: #343a40;
+  border-color: #495057;
+  color: #f8f9fa;
+}
+
+body.dark .typeahead-results .list-group-item {
+  background-color: transparent;
+  color: inherit;
 }
 
 body.dark .btn-light {

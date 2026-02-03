@@ -28,6 +28,13 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
   const [showAddMedicamentModal, setShowAddMedicamentModal] = useState(false);
 
   const { activeUser } = useUser();
+  const defaultEmployes = ['Azor', 'Naika', 'Tamara', 'Voltaire'];
+  const employeOptions = Array.from(
+    new Set([
+      ...(activeUser?.nom ? [activeUser.nom] : []),
+      ...defaultEmployes,
+    ])
+  );
 
   const resetState = () => {
     setSelectedPatient(undefined);
@@ -54,6 +61,12 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
       setEmploye(activeUser ? activeUser.nom : ''); // Set employee when modal opens
     }
   }, [show, activeUser]);
+
+  useEffect(() => {
+    if (service !== 'Medecine Interne' && service !== 'Maternité') {
+      setChambre(undefined);
+    }
+  }, [service]);
 
   const handleArticleChange = (index: number, field: string, value: any) => {
     const newArticles = [...articles];
@@ -151,7 +164,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
           <Form onSubmit={handleSubmit}>
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-3 typeahead">
                   <Form.Label>Patient</Form.Label>
                   <InputGroup>
                     <Form.Control
@@ -163,7 +176,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                     <Button variant="outline-secondary" onClick={() => setShowAddPatientModal(true)}>Nouveau</Button>
                   </InputGroup>
                   {showPatientResults && patientSearchTerm && (
-                    <ListGroup>
+                    <ListGroup className="typeahead-results">
                       {patients
                         .filter((p: Patient) => `${p.prenom} ${p.nom}`.toLowerCase().includes(patientSearchTerm.toLowerCase()))
                         .map((p: Patient) => (
@@ -195,10 +208,9 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                 <Form.Group className="mb-3">
                   <Form.Label>Employé</Form.Label>
                   <Form.Select value={employe} onChange={e => setEmploye(e.target.value)}>
-                    <option>Azor</option>
-                    <option>Naika</option>
-                    <option>Tamara</option>
-                    <option>Voltaire</option>
+                    {employeOptions.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -222,7 +234,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
             <h5>Articles</h5>
             {articles.map((article, index) => (
               <Row key={index} className="mb-2">
-                <Col md={7}>
+                <Col md={7} className="typeahead">
                   <Form.Control
                     type="text"
                     placeholder="Rechercher un médicament..."
@@ -230,7 +242,7 @@ const AddSortieModal: React.FC<AddSortieModalProps> = ({ show, onHide, onSuccess
                     onChange={e => handleArticleChange(index, 'searchTerm', e.target.value)}
                   />
                   {article.showResults && article.searchTerm && (
-                    <ListGroup>
+                    <ListGroup className="typeahead-results">
                       {medicaments
                         .filter((m: Medicament) => m.nom.toLowerCase().includes(article.searchTerm.toLowerCase()))
                         .map((m: Medicament) => (

@@ -49,7 +49,7 @@ const Patients: React.FC = () => {
       <h1>Patients</h1>
       <div className="d-flex justify-content-between mb-3">
         <Button variant="primary" onClick={() => setShowAddModal(true)}>Ajouter un patient</Button>
-        <InputGroup style={{ width: '300px' }}>
+        <InputGroup className="search-group">
           <Form.Control
             placeholder="Rechercher par prénom ou nom..."
             value={searchTerm}
@@ -57,7 +57,7 @@ const Patients: React.FC = () => {
           />
           {searchTerm && (
             <Button variant="outline-secondary" onClick={handleClearSearch}>
-              Clear
+              Effacer
             </Button>
           )}
         </InputGroup>

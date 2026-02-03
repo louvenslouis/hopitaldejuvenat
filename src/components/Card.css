@@ -11,6 +11,26 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.card-body-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.card-body-line .card-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.card-body-line .dropdown-toggle {
+  padding: 0;
+}
+
 .custom-card .card-body {
   padding: 1.5rem;
 }

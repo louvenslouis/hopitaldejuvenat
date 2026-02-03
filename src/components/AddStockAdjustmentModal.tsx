@@ -55,7 +55,8 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
       // Update medicament stock
       const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantiteAjustee });
+        const currentStock = medicament.quantite_en_stock ?? 0;
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantiteAjustee });
       }
 
       onSuccess();
@@ -70,7 +71,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3 typeahead">
             <Form.Label>Médicament</Form.Label>
             <Form.Control
               type="text"
@@ -79,7 +80,7 @@ const AddStockAdjustmentModal: React.FC<AddStockAdjustmentModalProps> = ({ show,
               onChange={e => { setMedicamentSearchTerm(e.target.value); setShowMedicamentResults(true); }}
             />
             {showMedicamentResults && medicamentSearchTerm && (
-              <ListGroup>
+              <ListGroup className="typeahead-results">
                 {medicaments
                   .filter((m: Medicament) => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
                   .map((m: Medicament) => (

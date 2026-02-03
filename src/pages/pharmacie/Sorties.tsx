@@ -69,7 +69,7 @@ const Sorties: React.FC = () => {
       <h1>Sorties de stock</h1>
       <div className="d-flex justify-content-between mb-3">
         <Button variant="primary" onClick={() => setShowAddModal(true)}>Créer une sortie</Button>
-        <InputGroup style={{ width: '300px' }}>
+        <InputGroup className="search-group">
           <Form.Control
             placeholder="Rechercher par patient, service, employé..."
             value={searchTerm}
@@ -77,7 +77,7 @@ const Sorties: React.FC = () => {
           />
           {searchTerm && (
             <Button variant="outline-secondary" onClick={handleClearSearch}>
-              Clear
+              Effacer
             </Button>
           )}
         </InputGroup>

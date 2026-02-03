@@ -51,7 +51,8 @@ const Entrees: React.FC = () => {
       // Update medicament stock
       const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
+        const currentStock = medicament.quantite_en_stock ?? 0;
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
       }
 
       fetchData();
@@ -68,7 +69,7 @@ const Entrees: React.FC = () => {
       <Form onSubmit={handleSubmit} className="mb-4">
         <Row>
           <Col md={5}>
-            <Form.Group>
+            <Form.Group className="typeahead">
               <Form.Label>Médicament</Form.Label>
               <Form.Control
                 type="text"
@@ -78,7 +79,7 @@ const Entrees: React.FC = () => {
                 required
               />
               {showMedicamentResults && medicamentSearchTerm && (
-                <ListGroup>
+                <ListGroup className="typeahead-results">
                   {medicaments
                     .filter((m: Medicament) => m.nom.toLowerCase().includes(medicamentSearchTerm.toLowerCase()))
                     .map((m) => (

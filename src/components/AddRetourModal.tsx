@@ -38,7 +38,8 @@ const AddRetourModal: React.FC<AddRetourModalProps> = ({ show, onHide, onSuccess
       // Update medicament stock
       const medicament = medicaments.find((m: Medicament) => m.id === selectedMedicament);
       if (medicament) {
-        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: medicament.quantite_en_stock + quantite });
+        const currentStock = medicament.quantite_en_stock ?? 0;
+        await updateDocument('liste_medicaments', selectedMedicament, { quantite_en_stock: currentStock + quantite });
       }
 
       onSuccess();
